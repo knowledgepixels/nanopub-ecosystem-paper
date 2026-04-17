@@ -1,0 +1,49 @@
+/*
+ * Draft-only decoration. Load after lncs.css / acm.css.
+ * Remove (or unlink) this file before camera-ready.
+ */
+
+.draft-tag {
+  color: #b91c1c;
+  font-family: "CMUSerif-Bold", serif;
+  font-weight: bold;
+  letter-spacing: 0.05em;
+}
+
+mark.todo {
+  background: #fff3b0;
+  color: #5a4500;
+  padding: 0 0.25em;
+  border-radius: 2px;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
+
+mark.todo::before {
+  content: "TODO";
+  display: inline-block;
+  margin-right: 0.4em;
+  padding: 0 0.35em;
+  background: #b91c1c;
+  color: #fff;
+  font-size: 0.75em;
+  font-weight: bold;
+  letter-spacing: 0.05em;
+  border-radius: 2px;
+  vertical-align: 0.1em;
+}
+
+@media print {
+  mark.todo {
+    background: #fff3b0 !important;
+    color: #5a4500 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  mark.todo::before {
+    background: #b91c1c !important;
+    color: #fff !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
