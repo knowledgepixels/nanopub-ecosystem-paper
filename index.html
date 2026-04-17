@@ -11,16 +11,108 @@
   <body about="" prefix="rdf: http://www.w3.org/1999/02/22-rdf-syntax-ns# rdfs: http://www.w3.org/2000/01/rdf-schema# owl: http://www.w3.org/2002/07/owl# xsd: http://www.w3.org/2001/XMLSchema# rdfa: http://www.w3.org/ns/rdfa# dcterms: http://purl.org/dc/terms/ dctypes: http://purl.org/dc/dcmitype/ foaf: http://xmlns.com/foaf/0.1/ pimspace: http://www.w3.org/ns/pim/space# skos: http://www.w3.org/2004/02/skos/core# prov: http://www.w3.org/ns/prov# mem: http://mementoweb.org/ns# qb: http://purl.org/linked-data/cube# schema: http://schema.org/ void: http://rdfs.org/ns/void# rsa: http://www.w3.org/ns/auth/rsa# cert: http://www.w3.org/ns/auth/cert# wgs: http://www.w3.org/2003/01/geo/wgs84_pos# bibo: http://purl.org/ontology/bibo/ sioc: http://rdfs.org/sioc/ns# doap: http://usefulinc.com/ns/doap# dbr: http://dbpedia.org/resource/ dbp: http://dbpedia.org/property/ sio: http://semanticscience.org/resource/ opmw: http://www.opmw.org/ontology/ deo: http://purl.org/spar/deo/ doco: http://purl.org/spar/doco/ cito: http://purl.org/spar/cito/ fabio: http://purl.org/spar/fabio/ oa: http://www.w3.org/ns/oa# as: https://www.w3.org/ns/activitystreams# ldp: http://www.w3.org/ns/ldp# solid: http://www.w3.org/ns/solid/terms# acl: http://www.w3.org/ns/auth/acl# earl: http://www.w3.org/ns/earl# spec: http://www.w3.org/ns/spec# odrl: http://www.w3.org/ns/odrl/2/ dio: https://w3id.org/dio# rel: https://www.w3.org/ns/iana/link-relations/relation# dcat: http://www.w3.org/ns/dcat csvw: http://www.w3.org/ns/csvw# dpv: https://w3id.org/dpv# risk: https://w3id.org/dpv/risk#" typeof="schema:CreativeWork prov:Entity">
     <main>
       <article dir="auto">
-        <h1 aria-label="Add a title" data-i18n="editor.new.h1" property="schema:name">Nanopub Ecosystem</h1>
+        <h1 property="schema:name">The Nanopub Ecosystem <span class="draft-tag">[DRAFT]</span></h1>
+
         <dl id="document-modified">
           <dt>Modified</dt>
           <dd><time content="2026-04-17T09:59:02.990Z" datatype="xsd:dateTime" datetime="2026-04-17T09:59:02.990Z" property="schema:dateModified">4/17/2026</time></dd>
         </dl>
-        <div datatype="rdf:HTML" property="schema:description">
-          <p data-i18n="editor.new.p">Draft.</p>
-          <p data-i18n="editor.new.p">More content to be written soon...</p>
-          <p>Some more testing... :)</p>
-        </div>
+
+        <!--
+          ISWC 2026 submits dual-anonymous. Keep authors anonymized until camera-ready.
+          Replace the blocks below with real names, ORCIDs, and affiliations after acceptance.
+        -->
+        <aside id="authors" class="authors">
+          <dl>
+            <dt>Author</dt>
+            <dd property="schema:author" typeof="schema:Person">
+              <span property="schema:name">Anonymous Author<sup>1</sup></span>
+              <ul id="author-email"><li property="schema:email">anonymous@example.org</li></ul>
+              <ul id="author-uri"><li property="schema:url">https://example.org/anonymous</li></ul>
+              <ul id="author-org"><li property="schema:affiliation" typeof="schema:Organization"><span property="schema:name">Anonymous Institution</span>, Anonymous City, Anonymous Country</li></ul>
+            </dd>
+          </dl>
+        </aside>
+
+        <section id="abstract" property="schema:abstract">
+          <h2>Abstract</h2>
+          <p>
+            <!-- LNCS abstract: 70–150 words. State the problem, approach, and main result plainly. -->
+            TODO: write a 70–150 word abstract summarizing the motivation, contribution, and key results of the nanopub ecosystem work.
+          </p>
+        </section>
+
+        <section id="keywords">
+          <h2>Keywords</h2>
+          <ul>
+            <li property="schema:keywords">Nanopublications</li>
+            <li property="schema:keywords">Knowledge Graphs</li>
+            <li property="schema:keywords">FAIR Data</li>
+            <li property="schema:keywords">Scholarly Communication</li>
+            <li property="schema:keywords">Decentralized Infrastructure</li>
+          </ul>
+        </section>
+
+        <section id="introduction">
+          <h2>Introduction</h2>
+          <p>TODO: motivate the problem, state the research question, and list contributions as a bulleted paragraph at the end of this section.</p>
+        </section>
+
+        <section id="background-and-related-work">
+          <h2>Background and Related Work</h2>
+          <p>TODO: summarize nanopublication foundations, prior ecosystems, and position this work against related efforts.</p>
+        </section>
+
+        <section id="approach">
+          <h2>Approach</h2>
+          <p>TODO: describe the components of the ecosystem (servers, registries, clients, templates, services) and how they interact.</p>
+          <section id="architecture">
+            <h3>Architecture</h3>
+            <p>TODO: components, data flows, and trust model.</p>
+          </section>
+          <section id="protocols">
+            <h3>Protocols and Interfaces</h3>
+            <p>TODO: APIs, query interfaces, and publication workflow.</p>
+          </section>
+        </section>
+
+        <section id="evaluation">
+          <h2>Evaluation</h2>
+          <p>TODO: describe experiments, datasets, metrics, and threats to validity.</p>
+        </section>
+
+        <section id="discussion">
+          <h2>Discussion</h2>
+          <p>TODO: interpret results, limitations, and implications for the Semantic Web community.</p>
+        </section>
+
+        <section id="conclusion">
+          <h2>Conclusion and Future Work</h2>
+          <p>TODO: summarize contributions and outline planned extensions.</p>
+        </section>
+
+        <!-- ISWC/ESWC require explicit statements at the end of the paper. -->
+        <section id="supplementary-material-statement">
+          <h2>Supplemental Material Statement</h2>
+          <p>TODO: list code, datasets, and resources with anonymous links (e.g., Zenodo, Anonymous GitHub) for review. Replace with canonical DOIs in the camera-ready.</p>
+        </section>
+
+        <section id="generative-ai-statement">
+          <h2>Use of Generative AI</h2>
+          <p>TODO: disclose any use of generative AI tools in accordance with the ISWC 2026 policy, or state that none was used.</p>
+        </section>
+
+        <section id="acknowledgements">
+          <h2>Acknowledgements</h2>
+          <p>TODO: redact for dual-anonymous submission. Add funders and collaborators in the camera-ready version.</p>
+        </section>
+
+        <section id="references">
+          <h2>References</h2>
+          <ol>
+            <li id="ref-placeholder-1">TODO: first reference in LNCS bibliographic style.</li>
+          </ol>
+        </section>
       </article>
     </main>
   </body>
