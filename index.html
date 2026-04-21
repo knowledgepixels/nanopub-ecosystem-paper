@@ -159,6 +159,14 @@ trustStateHash ← SHA-256(canonical_serialisation(paths))</code></pre>
                   <p>The query surface on top of this model is deliberately narrow. Each repository is exposed as a standard SPARQL endpoint with a YASGUI-based browser interface, and a set of named, nanopublication-defined templates — the successors to the grlc-style queries of the first-generation service layer, now specified as OpenAPI documents — provide parameterised, machine-consumable queries for common lookups. The combination of materialised partitions, admin metadata, and trust-state mirroring is what makes this second generation of Query services a qualitative step beyond a generic SPARQL endpoint over nanopublications.</p>
                 </div>
               </section>
+              <section id="nanodash" rel="schema:hasPart" resource="#nanodash">
+                <h3 property="schema:name">Nanodash</h3>
+                <div datatype="rdf:HTML" property="schema:description">
+                  <p><mark class="todo">double-check the description of Nanodash (Wicket architecture, ORCID + client-side key handling, template mechanism, space model) against the current nanodash codebase before submission.</mark></p>
+                  <p>Nanodash is the principal end-user client of the ecosystem: a Java/Wicket web application, deployed as several public instances, through which users browse, author, sign, and publish nanopublications. Users authenticate via ORCID and generate their RSA keypair locally, so private keys never leave the client; browsing and discovery go through a Query service, while signed submissions are posted to a Registry, whose trust model determines which keys the interface treats as approved.</p>
+                  <p>The defining feature of Nanodash is its template-driven authoring model: <em>templates</em> are themselves nanopublications, published through the same Registry, that describe form-like structures with typed placeholders, regular-expression and datatype constraints, and autocomplete endpoints backed by Query APIs. Filling in a template produces a new structured nanopublication that Nanodash assembles, signs locally, and publishes. Templates can be pinned to collaborative <em>spaces</em> whose membership and role assignments are themselves nanopublications, so the authoring interface, the trust and governance model, and the published content are all expressed in the same nanopublication substrate.</p>
+                </div>
+              </section>
             </div>
           </section>
           <section id="evaluation" rel="schema:hasPart" resource="#evaluation">
