@@ -16,7 +16,7 @@
         <h1 property="schema:name">The Nanopub Ecosystem <span class="draft-tag">[DRAFT]</span></h1>
         <dl id="document-modified">
           <dt>Modified</dt>
-          <dd><time content="2026-04-21T05:01:39.393Z" datatype="xsd:dateTime" datetime="2026-04-21T05:01:39.393Z" property="schema:dateModified">4/21/2026</time></dd>
+          <dd><time content="2026-04-21T05:27:00.884Z" datatype="xsd:dateTime" datetime="2026-04-21T05:27:00.884Z" property="schema:dateModified">4/21/2026</time></dd>
         </dl>
         <div id="authors">
           <dl id="author-name">
@@ -61,7 +61,7 @@
             <h2 property="schema:name">Background and Related Work</h2>
             <div datatype="rdf:HTML" property="schema:description">
               <p>                 Nanopublications a were first introduced for capturing indivual scientific claims [<a class="ref" href="#ref-9">9</a>,<a class="ref" href="#ref-2">2</a>], and later broadened to capture any kind of formally structured information entity [<a class="ref" href="#ref-3">3</a>,<a class="ref" href="#ref-5">5</a>]. Identity, verifiability, and immutability of nanopublications are addressed by Trusty URIs [<a class="ref" href="#ref-8">8</a>], which embed a content-derived cryptographic hash into the URI itself so that every reference and every retrieval is self-verifying. These building blocks underpin the trust model of the ecosystem presented here.               </p>
-              <p>                 The paradigm of publishing without central gatekeepers was first outlined in [<a class="ref" href="#ref-6">6</a>] and subsequently realised as a running decentralized network of nanopublication servers with end-to-end provenance [<a class="ref" href="#ref-4">4</a>]. More recent work added a layer of decentralized services that enable semantic micro-contributions on top of that network [<a class="ref" href="#ref-7">7</a>]. Representative data-centric applications include the DisGeNET gene–disease resource [<a class="ref" href="#ref-10">10</a>] and a provenance-centered drug–drug interaction dataset [<a class="ref" href="#ref-1">1</a>].               </p>
+              <p><mark class="todo">Work on this paragraph</mark> The paradigm of publishing without central gatekeepers was first outlined in [<a class="ref" href="#ref-6">6</a>] and subsequently realised as a running decentralized network of nanopublication servers with end-to-end provenance [<a class="ref" href="#ref-4">4</a>]. More recent work added a layer of decentralized services that enable semantic micro-contributions on top of that network [<a class="ref" href="#ref-7">7</a>]. Representative data-centric applications include the DisGeNET gene–disease resource [<a class="ref" href="#ref-10">10</a>] and a provenance-centered drug–drug interaction dataset [<a class="ref" href="#ref-1">1</a>].               </p>
               <p><mark class="todo">Position our ecosystem contribution against adjacent efforts such as FAIR Digital Objects, Solid, and broader scholarly knowledge-graph initiatives.</mark></p>
             </div>
           </section>
@@ -69,6 +69,15 @@
             <h2 property="schema:name">Approach</h2>
             <div datatype="rdf:HTML" property="schema:description">
               <p><mark class="todo">describe the components of the ecosystem (servers, registries, clients, templates, services) and how they interact.</mark></p>
+              <p>Things the second generation nanopublication network adds:</p>
+              <ul>
+                <li>Only signed nanopublications</li>
+                <li>Recognizes nanopublication types, and uses these to organize them</li>
+                <li>All nanopublications are listed first by pubkey, and then by type</li>
+                <li>Registry and Query instances can restrict their content by pubkeys and/or types</li>
+                <li>Trust network aware, starting from setting nanopublication</li>
+                <li>Quota system</li>
+              </ul>
               <section id="architecture" rel="schema:hasPart" resource="#architecture">
                 <h3 property="schema:name">Architecture</h3>
                 <div datatype="rdf:HTML" property="schema:description">
