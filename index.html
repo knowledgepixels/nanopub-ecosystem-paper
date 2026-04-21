@@ -16,7 +16,7 @@
         <h1 property="schema:name">The Nanopub Ecosystem <span class="draft-tag">[DRAFT]</span></h1>
         <dl id="document-modified">
           <dt>Modified</dt>
-          <dd><time content="2026-04-21T05:27:00.884Z" datatype="xsd:dateTime" datetime="2026-04-21T05:27:00.884Z" property="schema:dateModified">4/21/2026</time></dd>
+          <dd><time content="2026-04-21T14:55:16.905Z" datatype="xsd:dateTime" datetime="2026-04-21T14:55:16.905Z" property="schema:dateModified">4/21/2026</time></dd>
         </dl>
         <div id="authors">
           <dl id="author-name">
@@ -83,15 +83,47 @@
                 <div datatype="rdf:HTML" property="schema:description">
                   <p><mark class="todo">components, data flows, and trust model.</mark></p>
                   <figure id="fig-nanopub-architecture">
-                    <p><span class="editor-image-resize"><img alt="High-level architecture of the nanopublication ecosystem" src="media/images/nanopub-architecture.svg" /><span class="editor-image-resize-handle"></span></span></p>
+                    <p><span class="editor-image-resize"><span class="editor-image-resize"><span class="editor-image-resize"><img alt="High-level architecture of the nanopublication ecosystem" src="media/images/nanopub-architecture.svg" /><span class="editor-image-resize-handle"></span></span><span class="editor-image-resize-handle"></span></span><span class="editor-image-resize-handle"></span></span></p>
                     <figcaption>High-level architecture of the nanopublication ecosystem. <mark class="todo">update/adjust this figure for the paper.</mark></figcaption>
                   </figure>
                 </div>
               </section>
               <section id="protocols" rel="schema:hasPart" resource="#protocols">
-                <h3 property="schema:name">Protocols and Interfaces</h3>
+                <h3 property="schema:name">Trust calculation</h3>
                 <div datatype="rdf:HTML" property="schema:description">
-                  <p><mark class="todo">APIs, query interfaces, and publication workflow.</mark></p>
+                  <p><mark class="todo">double-check the prose and the pseudo-code below against the Nanopub Registry implementation before submission.</mark></p>
+                  <p>Each Nanopub Registry derives a per-public-key trust score by propagating endorsements through a directed graph rooted in the registry's <em>setting</em> nanopublication. The computation is deterministic, re-runnable, and exposed to downstream services as a versioned snapshot.</p>
+                  <p>The trust graph is rooted in a single setting nanopublication that anchors a root agent. Introduction nanopublications bind agents to public keys, and endorsement nanopublications add trust edges between introductions; retractions invalidate previously declared edges. Trust is then propagated iteratively from the root through endorsement chains up to a maximum depth, and paths whose ratio falls below a fixed threshold are pruned.</p>
+                  <p>At each hop, 90% of a parent's ratio is distributed uniformly across its endorsed children (and split further across their public keys) while 10% is retained on the parent path, yielding a geometric discount with depth. For a given public key, all trust paths reaching it are summed into a single aggregated ratio; the number of paths whose intermediate endorsers are pairwise disjoint is tracked separately as a diagnostic path count, but does not enter the score itself. The aggregated ratio in [0,1] is then mapped to an integer publication quota, clamped between a minimum and maximum value so that even weakly trusted agents retain a baseline and highly trusted ones do not dominate.</p>
+                  <p>Public keys tied to agents with a single active key are marked <em>approved</em>; agents controlling multiple simultaneously valid keys have their keys marked <em>contested</em>. Finally, the complete set of trust paths is hashed (SHA-256) to a <em>trust-state hash</em> that is published in an HTTP header and served as an immutable snapshot endpoint, so that Nanopub Query instances and other consumers can atomically mirror consistent trust states.</p>
+                  <p>The core of this computation can be summarised as the following simplified procedure, where <code>S</code> is the setting nanopublication and <code>N</code> is the set of introduction and endorsement nanopublications available to the registry:</p>
+                  <pre><code>Input:  setting nanopub S, introduction/endorsement nanopubs N
+Output: per-pubkey (ratio, quota, status) and trust-state hash
+
+paths    ← { (root(S), ratio = 1.0, depth = 0) }
+frontier ← { root(S) }
+
+for d = 1 to MAX_DEPTH:
+    next ← ∅
+    for parent in frontier:
+        endorsed ← agents endorsed by parent via N
+        for (agent, pubkey) in endorsed:
+            r ← parent.ratio × 0.9 / |endorsed| / |pubkeys(agent)|
+            if r &lt; MIN_RATIO: continue
+            paths ← paths ∪ { (pubkey, r, d) }
+            next  ← next  ∪ { pubkey }
+    frontier ← next
+    if frontier = ∅: break
+
+for each pubkey k:
+    ratio(k)     ← Σ { r : (k, r, _) ∈ paths }
+    pathCount(k) ← |{ subset of paths to k with pairwise
+                      disjoint intermediate endorsers }|
+    quota(k)     ← clamp(GLOBAL_QUOTA × ratio(k), MIN_QUOTA, MAX_QUOTA)
+    status(k)    ← approved  if agent(k) has a single active pubkey
+                   contested otherwise
+
+trustStateHash ← SHA-256(canonical_serialisation(paths))</code></pre>
                 </div>
               </section>
             </div>
