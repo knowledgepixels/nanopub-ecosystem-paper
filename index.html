@@ -152,6 +152,7 @@ for d = 1 to MAX_DEPTH:
             <span style="color:#059669">▶ EXPAND_TRUST_PATHS</span>
             r ← parent.ratio × 0.9 / |endorsed| / |pubkeys(agent)|
             paths ← paths ∪ { (pubkey, r, d) }
+        parent.ratio ← parent.ratio × 0.1    # retain 10% on the parent path
 
     <span style="color:#0891b2">▶ FINISH_ITERATION (loadCount==0 ⇒ break)</span>
     frontier ← next
