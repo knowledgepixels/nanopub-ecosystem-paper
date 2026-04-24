@@ -169,14 +169,14 @@ for d = 1 to MAX_DEPTH:
         for (a', k') in endorsed:
             <span style="color:#6b7280"># number of keys of a' that appear in endorsed</span>
             n_keys ← |{ k" : (a', k") ∈ endorsed }|
-            <span style="color:#6b7280"># split 90% of p.ratio equally, first by agent,</span>
+            <span style="color:#6b7280"># split SPLIT of p.ratio equally, first by agent,</span>
             <span style="color:#6b7280"># then, within each agent, by that agent's keys</span>
-            r' ← p.ratio × 0.9 / n_agents / n_keys
+            r' ← p.ratio × SPLIT / n_agents / n_keys
             <span style="color:#6b7280"># append the new hop as a new extended path</span>
             paths ← paths ∪ {
                 (chain(p) · (a', k'), r', d, extended) }
-        <span style="color:#6b7280"># retain 10% on p, now the "primary" path for end(p)</span>
-        p.ratio ← p.ratio × 0.1
+        <span style="color:#6b7280"># retain (1 - SPLIT) on p, now the "primary" path for end(p)</span>
+        p.ratio ← p.ratio × (1 - SPLIT)
         p.type  ← primary
 
     <span style="color:#7c3aed">▶ FINISH_ITERATION (no expansions ⇒ break)</span>
