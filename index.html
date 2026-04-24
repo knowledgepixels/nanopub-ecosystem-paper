@@ -86,7 +86,7 @@
                   <p><mark class="todo">expand this section with a proper data-flow description that ties together the layers and the Registry concepts introduced below; double-check layer names and responsibilities against the current ecosystem deployment.</mark></p>
                   <p>At a high level, the ecosystem is organised into four cooperating layers. <em>Trusty URIs</em> provide content-derived, immutable identifiers for every nanopublication. A federated set of <em>Nanopub Registries</em> ingests, authenticates, governs and replicates these nanopublications; the subsequent subsections describe their internal structure in detail. On top of the Registries, a set of <em>Nanopub Query</em> services indexes the stored content and exposes it through SPARQL and REST endpoints. Finally, user-facing <em>client applications</em> — foremost among them Nanodash — create, sign, submit, and browse nanopublications by interacting with the Registry and Query APIs. Nanopublications therefore flow upward from clients to Registries at publication time, and downward from Registries through Query into client-facing views at consumption time.</p>
                   <figure id="fig-nanopub-architecture">
-                    <p><span class="editor-image-resize"><img alt="High-level architecture of the nanopublication ecosystem" src="media/images/nanopub-architecture.svg" /><span class="editor-image-resize-handle"></span></span></p>
+                    <p><img alt="High-level architecture of the nanopublication ecosystem" src="media/images/nanopub-architecture.svg" /></p>
                     <figcaption>High-level architecture of the nanopublication ecosystem. <mark class="todo">update/adjust this figure for the paper.</mark></figcaption>
                   </figure>
                 </div>
@@ -126,49 +126,82 @@
 Input:  setting nanopub S
 Output: per-pubkey (ratio, quota, status) and trust-state hash
 
-<span style="color:#d97706">▶ INIT_COLLECTIONS</span>
-paths    ← { (root(S), ratio = 1.0, depth = 0) }
-frontier ← { root(S) }
-N        ← { introductions and endorsements declared by S }
+<span style="color:#6b7280"># A trust path p is a record with:</span>
+<span style="color:#6b7280">#   chain(p) — sequence of (agent, pubkey) hops, ending at end(p);</span>
+<span style="color:#6b7280">#   p.ratio  — current contribution in [0,1];</span>
+<span style="color:#6b7280">#   p.depth  — depth at which p was first inserted;</span>
+<span style="color:#6b7280">#   p.type   — extended (not yet expanded) | primary (expanded).</span>
 
-<span style="color:#0891b2">▶ FINISH_ITERATION (loop control)</span>
+<span style="color:#7c3aed">▶ INIT_COLLECTIONS</span>
+<span style="color:#6b7280"># seed paths with the root path (ratio 1.0, depth 0, extended)</span>
+paths ← { (chain = [root(S)], ratio = 1.0, depth = 0,
+           type = extended) }
+<span style="color:#6b7280"># initial trust declarations signed by the setting itself</span>
+N     ← { introductions and endorsements declared by S }
+
+<span style="color:#7c3aed">▶ FINISH_ITERATION (loop control)</span>
 for d = 1 to MAX_DEPTH:
 
-    <span style="color:#dc2626">▶ LOAD_CORE (ratio gate + fetch decl(k) from peers)</span>
-    # prune low-ratio pubkeys from the frontier, then
-    # bring in the declarations signed by any survivor
-    frontier ← { k ∈ frontier : max{r : (k,r,_) ∈ paths} ≥ MIN_RATIO }
-    new_decls ← ∅
-    for k in frontier:
-        new_decls ← new_decls ∪ decl(k)
-    N ← N ∪ new_decls
+    <span style="color:#7c3aed">▶ LOAD_CORE (ratio gate + fetch decl(k) from peers)</span>
+    <span style="color:#6b7280"># for each distinct endpoint of an extended path at depth</span>
+    <span style="color:#6b7280"># d-1, keep its highest-ratio such path (dropping those</span>
+    <span style="color:#6b7280"># whose ratio falls below MIN_RATIO)</span>
+    expand ← ∅
+    <span style="color:#6b7280"># for each endpoint of an extended path at depth d-1...</span>
+    for x in { end(p) : p ∈ paths,
+                        p.depth = d-1, p.type = extended }:
+        <span style="color:#6b7280"># ...pick the highest-ratio such path to x</span>
+        p* ← argmax { p.ratio : p ∈ paths, end(p) = x,
+                                p.depth = d-1, p.type = extended }
+        if p*.ratio ≥ MIN_RATIO:
+            expand ← expand ∪ { p* }
+    <span style="color:#6b7280"># fetch nanopubs signed by each selected endpoint's pubkey</span>
+    for p in expand:
+        N ← N ∪ decl(pubkey(end(p)))
 
-    <span style="color:#2563eb">▶ LOAD_DECLARATIONS (build trust edges; status=seen)</span>
-    next ← ∅
-    for parent in frontier:
-        endorsed ← agents endorsed by parent via N
-        for (agent, pubkey) in endorsed:
-            next  ← next  ∪ { pubkey }
-            <span style="color:#059669">▶ EXPAND_TRUST_PATHS</span>
-            r ← parent.ratio × 0.9 / |endorsed| / |pubkeys(agent)|
-            paths ← paths ∪ { (pubkey, r, d) }
-        parent.ratio ← parent.ratio × 0.1    # retain 10% on the parent path
+    <span style="color:#7c3aed">▶ LOAD_DECLARATIONS (build trust edges + accounts)</span>
+    <span style="color:#7c3aed">▶ EXPAND_TRUST_PATHS</span>
+    for p in expand:
+        <span style="color:#6b7280"># (agent, pubkey) pairs that p's endpoint endorses via N</span>
+        endorsed ← { (a', k') : end(p) endorses (a', k') via N }
+        <span style="color:#6b7280"># number of distinct endorsed agents</span>
+        n_agents ← |{ a' : (a', _) ∈ endorsed }|
+        for (a', k') in endorsed:
+            <span style="color:#6b7280"># number of keys of a' that appear in endorsed</span>
+            n_keys ← |{ k" : (a', k") ∈ endorsed }|
+            <span style="color:#6b7280"># split 90% of p.ratio equally, first by agent,</span>
+            <span style="color:#6b7280"># then, within each agent, by that agent's keys</span>
+            r' ← p.ratio × 0.9 / n_agents / n_keys
+            <span style="color:#6b7280"># append the new hop as a new extended path</span>
+            paths ← paths ∪ {
+                (chain(p) · (a', k'), r', d, extended) }
+        <span style="color:#6b7280"># retain 10% on p, now the "primary" path for end(p)</span>
+        p.ratio ← p.ratio × 0.1
+        p.type  ← primary
 
-    <span style="color:#0891b2">▶ FINISH_ITERATION (loadCount==0 ⇒ break)</span>
-    frontier ← next
-    if frontier = ∅: break
+    <span style="color:#7c3aed">▶ FINISH_ITERATION (no expansions ⇒ break)</span>
+    if expand = ∅: break
 
-<span style="color:#db2777">▶ CALCULATE_TRUST_SCORES</span>
+<span style="color:#7c3aed">▶ CALCULATE_TRUST_SCORES</span>
 for each pubkey k:
-    ratio(k)     ← Σ { r : (k, r, _) ∈ paths }
-    pathCount(k) ← |{ subset of paths to k with pairwise
-                      disjoint intermediate endorsers }|
-    quota(k)     ← clamp(GLOBAL_QUOTA × ratio(k), MIN_QUOTA, MAX_QUOTA)
-    <span style="color:#92400e">▶ ASSIGN_PUBKEYS</span>
-    status(k)    ← approved  if |{ a : (a, k) ∈ accounts }| = 1
+    <span style="color:#6b7280"># all trust paths ending at pubkey k</span>
+    P_k          ← { p ∈ paths : pubkey(end(p)) = k }
+    <span style="color:#6b7280"># aggregate trust in [0,1]</span>
+    ratio(k)     ← Σ { p.ratio : p ∈ P_k }
+    <span style="color:#6b7280"># greedy diagnostic only; does not feed into ratio or quota</span>
+    pathCount(k) ← |{ subset of P_k with pairwise disjoint
+                      intermediate hops }|
+    <span style="color:#6b7280"># publication quota proportional to ratio(k), clamped</span>
+    quota(k)     ← clamp(GLOBAL_QUOTA × ratio(k),
+                         MIN_QUOTA, MAX_QUOTA)
+    <span style="color:#7c3aed">▶ ASSIGN_PUBKEYS</span>
+    <span style="color:#6b7280"># agents recorded as claiming key k</span>
+    A_k          ← { a : ∃ p ∈ P_k, end(p) = (a, k) }
+    <span style="color:#6b7280"># approved iff only one agent claims k</span>
+    status(k)    ← approved  if |A_k| = 1
                    contested otherwise
 
-<span style="color:#4b5563">▶ FINALIZE_TRUST_STATE</span>
+<span style="color:#7c3aed">▶ FINALIZE_TRUST_STATE</span>
 trustStateHash ← SHA-256(canonical_serialisation(paths))</code></pre>
                 </div>
               </section>
