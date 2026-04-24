@@ -121,40 +121,53 @@
                   <p>Public keys tied to agents with a single active key are marked <em>approved</em>; agents controlling multiple simultaneously valid keys have their keys marked <em>contested</em>. Finally, the complete set of trust paths is hashed (SHA-256) to a <em>trust-state hash</em> that is published in an HTTP header and served as an immutable snapshot endpoint, so that Nanopub Query instances and other consumers can atomically mirror consistent trust states.</p>
                   <p>The core of this computation can be summarised as the following simplified procedure. Here <code>S</code> is the setting nanopublication and <code>N</code> is the set of introduction and endorsement nanopublications considered by the registry; <code>N</code> is not a fixed input but is built up incrementally via the auxiliary set <code>decl(k)</code>, defined as the introduction and endorsement nanopublications whose cryptographic signature can be verified against public key <code>k</code>. At each depth, the registry becomes aware of <code>decl(k)</code> for every key <code>k</code> it has just added to the trust frontier.</p>
                   <p><mark class="todo">It would be helpful to clearly define the variables and functions: root(x), paths, frontier, N...</mark></p>
-                  <pre><code>Input:  setting nanopub S
+                  <p><mark class="todo">Task-enum annotations below are scaffolding for cross-checking against the Nanopub Registry <code>Task</code> enum; remove before submission.</mark></p>
+                  <pre><code><span style="color:#7c3aed">▶ LOAD_SETTING</span>
+Input:  setting nanopub S
 Output: per-pubkey (ratio, quota, status) and trust-state hash
 
+<span style="color:#d97706">▶ INIT_COLLECTIONS</span>
 paths    ← { (root(S), ratio = 1.0, depth = 0) }
 frontier ← { root(S) }
 N        ← { introductions and endorsements declared by S }
 
+<span style="color:#0891b2">▶ FINISH_ITERATION (loop control)</span>
 for d = 1 to MAX_DEPTH:
-    # bring in the declarations signed by any key that
-    # the previous iteration added to the frontier
+
+    <span style="color:#dc2626">▶ LOAD_CORE (ratio gate + fetch decl(k) from peers)</span>
+    # prune low-ratio pubkeys from the frontier, then
+    # bring in the declarations signed by any survivor
+    frontier ← { k ∈ frontier : max{r : (k,r,_) ∈ paths} ≥ MIN_RATIO }
     new_decls ← ∅
     for k in frontier:
         new_decls ← new_decls ∪ decl(k)
     N ← N ∪ new_decls
 
+    <span style="color:#2563eb">▶ LOAD_DECLARATIONS (build trust edges; status=seen)</span>
     next ← ∅
     for parent in frontier:
         endorsed ← agents endorsed by parent via N
         for (agent, pubkey) in endorsed:
-            r ← parent.ratio × 0.9 / |endorsed| / |pubkeys(agent)|
-            if r &lt; MIN_RATIO: continue
-            paths ← paths ∪ { (pubkey, r, d) }
             next  ← next  ∪ { pubkey }
+            <span style="color:#059669">▶ EXPAND_TRUST_PATHS</span>
+            r ← parent.ratio × 0.9 / |endorsed| / |pubkeys(agent)|
+            paths ← paths ∪ { (pubkey, r, d) }
+
+    <span style="color:#0891b2">▶ FINISH_ITERATION (loadCount==0 ⇒ break)</span>
     frontier ← next
     if frontier = ∅: break
 
+<span style="color:#db2777">▶ CALCULATE_TRUST_SCORES</span>
 for each pubkey k:
     ratio(k)     ← Σ { r : (k, r, _) ∈ paths }
     pathCount(k) ← |{ subset of paths to k with pairwise
                       disjoint intermediate endorsers }|
     quota(k)     ← clamp(GLOBAL_QUOTA × ratio(k), MIN_QUOTA, MAX_QUOTA)
+    <span style="color:#92400e">▶ ASSIGN_PUBKEYS</span>
     status(k)    ← approved  if agent(k) has a single active pubkey
                    contested otherwise
 
+<span style="color:#4b5563">▶ FINALIZE_TRUST_STATE</span>
 trustStateHash ← SHA-256(canonical_serialisation(paths))</code></pre>
                 </div>
               </section>
