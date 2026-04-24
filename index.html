@@ -130,40 +130,51 @@ Output: per-pubkey (ratio, quota, status) and trust-state hash
 <span style="color:#6b7280">#   chain(p) — sequence of (agent, pubkey) hops, ending at end(p);</span>
 <span style="color:#6b7280">#   p.ratio  — current contribution in [0,1];</span>
 <span style="color:#6b7280">#   p.depth  — depth at which p was first inserted;</span>
-<span style="color:#6b7280">#   p.type   — extended (not yet expanded) | primary (expanded).</span>
+<span style="color:#6b7280">#   p.primary — true once p has been expanded (and retained).</span>
+<span style="color:#6b7280">#</span>
+<span style="color:#6b7280"># $ is the root (agent, pubkey) sentinel — the setting S</span>
+<span style="color:#6b7280"># acting as the root endorser.</span>
+<span style="color:#6b7280">#</span>
+<span style="color:#6b7280"># N is a set of trust-edge tuples. Each edge ((a, k), (a', k'))</span>
+<span style="color:#6b7280"># means that endorser (a, k) has signed an endorsement whose</span>
+<span style="color:#6b7280"># referenced introduction declares the binding (a', k').</span>
+<span style="color:#6b7280"># decl(k) is the subset of such edges with endorser pubkey = k,</span>
+<span style="color:#6b7280"># materialized from peer-hosted nanopubs signed by k.</span>
 
 <span style="color:#7c3aed">▶ INIT_COLLECTIONS</span>
-<span style="color:#6b7280"># seed paths with the root path (ratio 1.0, depth 0, extended)</span>
-paths ← { (chain = [root(S)], ratio = 1.0, depth = 0,
-           type = extended) }
-<span style="color:#6b7280"># initial trust declarations signed by the setting itself</span>
-N     ← { introductions and endorsements declared by S }
+<span style="color:#6b7280"># seed paths with the root path (ratio 1.0, depth 0, not primary)</span>
+paths ← { (chain = [$], ratio = 1.0, depth = 0, ¬primary) }
+<span style="color:#6b7280"># seed N with edges from $ to each (a', k') declared</span>
+<span style="color:#6b7280"># in the agent-intro collection referenced by S</span>
+N     ← { ($, (a', k')) : (a', k') declared by an intro
+                          in S's agent-intro collection }
 
 <span style="color:#7c3aed">▶ FINISH_ITERATION (loop control)</span>
 for d = 1 to MAX_DEPTH:
 
     <span style="color:#7c3aed">▶ LOAD_CORE (ratio gate + fetch decl(k) from peers)</span>
-    <span style="color:#6b7280"># for each distinct endpoint of an extended path at depth</span>
+    <span style="color:#6b7280"># for each distinct endpoint of a non-primary path at depth</span>
     <span style="color:#6b7280"># d-1, keep its highest-ratio such path (dropping those</span>
     <span style="color:#6b7280"># whose ratio falls below MIN_RATIO)</span>
     expand ← ∅
-    <span style="color:#6b7280"># for each endpoint of an extended path at depth d-1...</span>
+    <span style="color:#6b7280"># for each endpoint of a non-primary path at depth d-1...</span>
     for x in { end(p) : p ∈ paths,
-                        p.depth = d-1, p.type = extended }:
+                        p.depth = d-1, ¬p.primary }:
         <span style="color:#6b7280"># ...pick the highest-ratio such path to x</span>
         p* ← argmax { p.ratio : p ∈ paths, end(p) = x,
-                                p.depth = d-1, p.type = extended }
+                                p.depth = d-1, ¬p.primary }
         if p*.ratio ≥ MIN_RATIO:
             expand ← expand ∪ { p* }
-    <span style="color:#6b7280"># fetch nanopubs signed by each selected endpoint's pubkey</span>
+    <span style="color:#6b7280"># bring in new edges from each selected endpoint by fetching</span>
+    <span style="color:#6b7280"># nanopubs signed by its pubkey from peer registries</span>
     for p in expand:
         N ← N ∪ decl(pubkey(end(p)))
 
     <span style="color:#7c3aed">▶ LOAD_DECLARATIONS (build trust edges + accounts)</span>
     <span style="color:#7c3aed">▶ EXPAND_TRUST_PATHS</span>
     for p in expand:
-        <span style="color:#6b7280"># (agent, pubkey) pairs that p's endpoint endorses via N</span>
-        endorsed ← { (a', k') : end(p) endorses (a', k') via N }
+        <span style="color:#6b7280"># (a', k') pairs reached from end(p) by one edge in N</span>
+        endorsed ← { (a', k') : (end(p), (a', k')) ∈ N }
         <span style="color:#6b7280"># number of distinct endorsed agents</span>
         n_agents ← |{ a' : (a', _) ∈ endorsed }|
         for (a', k') in endorsed:
@@ -172,12 +183,12 @@ for d = 1 to MAX_DEPTH:
             <span style="color:#6b7280"># split SPLIT of p.ratio equally, first by agent,</span>
             <span style="color:#6b7280"># then, within each agent, by that agent's keys</span>
             r' ← p.ratio × SPLIT / n_agents / n_keys
-            <span style="color:#6b7280"># append the new hop as a new extended path</span>
+            <span style="color:#6b7280"># append the new hop as a new (non-primary) path</span>
             paths ← paths ∪ {
-                (chain(p) · (a', k'), r', d, extended) }
-        <span style="color:#6b7280"># retain (1 - SPLIT) on p, now the "primary" path for end(p)</span>
-        p.ratio ← p.ratio × (1 - SPLIT)
-        p.type  ← primary
+                (chain(p) · (a', k'), r', d, ¬primary) }
+        <span style="color:#6b7280"># retain (1 - SPLIT) on p and mark it primary for end(p)</span>
+        p.ratio   ← p.ratio × (1 - SPLIT)
+        p.primary ← true
 
     <span style="color:#7c3aed">▶ FINISH_ITERATION (no expansions ⇒ break)</span>
     if expand = ∅: break
