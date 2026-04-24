@@ -13,7 +13,7 @@
   <body about="" prefix="rdf: http://www.w3.org/1999/02/22-rdf-syntax-ns# rdfs: http://www.w3.org/2000/01/rdf-schema# owl: http://www.w3.org/2002/07/owl# xsd: http://www.w3.org/2001/XMLSchema# rdfa: http://www.w3.org/ns/rdfa# dcterms: http://purl.org/dc/terms/ dctypes: http://purl.org/dc/dcmitype/ foaf: http://xmlns.com/foaf/0.1/ pimspace: http://www.w3.org/ns/pim/space# skos: http://www.w3.org/2004/02/skos/core# prov: http://www.w3.org/ns/prov# mem: http://mementoweb.org/ns# qb: http://purl.org/linked-data/cube# schema: http://schema.org/ void: http://rdfs.org/ns/void# rsa: http://www.w3.org/ns/auth/rsa# cert: http://www.w3.org/ns/auth/cert# wgs: http://www.w3.org/2003/01/geo/wgs84_pos# bibo: http://purl.org/ontology/bibo/ sioc: http://rdfs.org/sioc/ns# doap: http://usefulinc.com/ns/doap# dbr: http://dbpedia.org/resource/ dbp: http://dbpedia.org/property/ sio: http://semanticscience.org/resource/ opmw: http://www.opmw.org/ontology/ deo: http://purl.org/spar/deo/ doco: http://purl.org/spar/doco/ cito: http://purl.org/spar/cito/ fabio: http://purl.org/spar/fabio/ oa: http://www.w3.org/ns/oa# as: https://www.w3.org/ns/activitystreams# ldp: http://www.w3.org/ns/ldp# solid: http://www.w3.org/ns/solid/terms# acl: http://www.w3.org/ns/auth/acl# earl: http://www.w3.org/ns/earl# spec: http://www.w3.org/ns/spec# odrl: http://www.w3.org/ns/odrl/2/ dio: https://w3id.org/dio# rel: https://www.w3.org/ns/iana/link-relations/relation# dcat: http://www.w3.org/ns/dcat csvw: http://www.w3.org/ns/csvw# dpv: https://w3id.org/dpv# risk: https://w3id.org/dpv/risk#" typeof="schema:CreativeWork prov:Entity">
     <main>
       <article about="" dir="auto" typeof="schema:ScholarlyArticle">
-        <h1 property="schema:name">The Nanopub Ecosystem <span class="draft-tag">[DRAFT]</span></h1>
+        <h1 property="schema:name">A Decentralized Infrastructure for Trust-Aware Open Knowledge Sharing by Humans and AI Agents <span class="draft-tag">[DRAFT]</span></h1>
         <dl id="document-modified">
           <dt>Modified</dt>
           <dd><time content="2026-04-24T12:55:51.409Z" datatype="xsd:dateTime" datetime="2026-04-24T12:55:51.409Z" property="schema:dateModified">4/24/2026</time></dd>
@@ -121,98 +121,98 @@
                   <p>A public key claimed by exactly one agent is marked <em>approved</em>; a public key claimed by two or more distinct agents is marked <em>contested</em> and held back from general availability until the ambiguity is resolved. Finally, the complete set of trust paths is hashed (SHA-256) to a <em>trust-state hash</em> that is published in an HTTP header and served as an immutable snapshot endpoint, so that Nanopub Query instances and other consumers can atomically mirror consistent trust states.</p>
                   <p>The core of this computation can be summarised as the following simplified procedure. Here <code>S</code> is the setting nanopublication and <code>N</code> is the set of introduction and endorsement nanopublications considered by the registry; <code>N</code> is not a fixed input but is built up incrementally via the auxiliary set <code>decl(k)</code>, defined as the introduction and endorsement nanopublications whose cryptographic signature can be verified against public key <code>k</code>. At each depth, the registry becomes aware of <code>decl(k)</code> for every key <code>k</code> it has just added to the trust frontier.</p>
                   <p><mark class="todo">It would be helpful to clearly define the variables and functions: root(x), paths, frontier, N...</mark></p>
-                  <p><mark class="todo">Task-enum annotations below are scaffolding for cross-checking against the Nanopub Registry <code>Task</code> enum; remove before submission.</mark></p>
-                  <pre><code><span style="color:#7c3aed">▶ LOAD_SETTING</span>
+                  <p><mark class="todo">Task-enum annotations below are scaffolding for cross-checking against the Nanopub Registry </mark><code>Task</code><mark class="todo"> enum; remove before submission.</mark></p>
+                  <pre><code><span>▶ LOAD_SETTING</span>
 Input:  setting nanopub S
 Output: per-pubkey (ratio, quota, status) and trust-state hash
 
-<span style="color:#6b7280"># A trust path p is a record with:</span>
-<span style="color:#6b7280">#   chain(p) — sequence of (agent, pubkey) hops, ending at end(p);</span>
-<span style="color:#6b7280">#   p.ratio  — current contribution in [0,1];</span>
-<span style="color:#6b7280">#   p.depth  — depth at which p was first inserted;</span>
-<span style="color:#6b7280">#   p.primary — true once p has been expanded (and retained).</span>
-<span style="color:#6b7280">#</span>
-<span style="color:#6b7280"># $ is the root (agent, pubkey) sentinel — the setting S</span>
-<span style="color:#6b7280"># acting as the root endorser.</span>
-<span style="color:#6b7280">#</span>
-<span style="color:#6b7280"># N is a set of trust-edge tuples. Each edge ((a, k), (a', k'))</span>
-<span style="color:#6b7280"># means that endorser (a, k) has signed an endorsement whose</span>
-<span style="color:#6b7280"># referenced introduction declares the binding (a', k').</span>
-<span style="color:#6b7280"># decl(k) is the subset of such edges with endorser pubkey = k,</span>
-<span style="color:#6b7280"># materialized from peer-hosted nanopubs signed by k.</span>
+<span># A trust path p is a record with:</span>
+<span>#   chain(p) — sequence of (agent, pubkey) hops, ending at end(p);</span>
+<span>#   p.ratio  — current contribution in [0,1];</span>
+<span>#   p.depth  — depth at which p was first inserted;</span>
+<span>#   p.primary — true once p has been expanded (and retained).</span>
+<span>#</span>
+<span># $ is the root (agent, pubkey) sentinel — the setting S</span>
+<span># acting as the root endorser.</span>
+<span>#</span>
+<span># N is a set of trust-edge tuples. Each edge ((a, k), (a', k'))</span>
+<span># means that endorser (a, k) has signed an endorsement whose</span>
+<span># referenced introduction declares the binding (a', k').</span>
+<span># decl(k) is the subset of such edges with endorser pubkey = k,</span>
+<span># materialized from peer-hosted nanopubs signed by k.</span>
 
-<span style="color:#7c3aed">▶ INIT_COLLECTIONS</span>
-<span style="color:#6b7280"># seed paths with the root path (ratio 1.0, depth 0, not primary)</span>
+<span>▶ INIT_COLLECTIONS</span>
+<span># seed paths with the root path (ratio 1.0, depth 0, not primary)</span>
 paths ← { (chain = [$], ratio = 1.0, depth = 0, ¬primary) }
-<span style="color:#6b7280"># seed N with edges from $ to each (a', k') declared</span>
-<span style="color:#6b7280"># in the agent-intro collection referenced by S</span>
+<span># seed N with edges from $ to each (a', k') declared</span>
+<span># in the agent-intro collection referenced by S</span>
 N     ← { ($, (a', k')) : (a', k') declared by an intro
                           in S's agent-intro collection }
 
-<span style="color:#7c3aed">▶ FINISH_ITERATION (loop control)</span>
+<span>▶ FINISH_ITERATION (loop control)</span>
 for d = 1 to MAX_DEPTH:
 
-    <span style="color:#7c3aed">▶ LOAD_CORE (ratio gate + fetch decl(k) from peers)</span>
-    <span style="color:#6b7280"># for each distinct endpoint of a non-primary path at depth</span>
-    <span style="color:#6b7280"># d-1, keep its highest-ratio such path (dropping those</span>
-    <span style="color:#6b7280"># whose ratio falls below MIN_RATIO)</span>
+    <span>▶ LOAD_CORE (ratio gate + fetch decl(k) from peers)</span>
+    <span># for each distinct endpoint of a non-primary path at depth</span>
+    <span># d-1, keep its highest-ratio such path (dropping those</span>
+    <span># whose ratio falls below MIN_RATIO)</span>
     expand ← ∅
-    <span style="color:#6b7280"># for each endpoint of a non-primary path at depth d-1...</span>
+    <span># for each endpoint of a non-primary path at depth d-1...</span>
     for x in { end(p) : p ∈ paths,
                         p.depth = d-1, ¬p.primary }:
-        <span style="color:#6b7280"># ...pick the highest-ratio such path to x</span>
+        <span># ...pick the highest-ratio such path to x</span>
         p* ← argmax { p.ratio : p ∈ paths, end(p) = x,
                                 p.depth = d-1, ¬p.primary }
         if p*.ratio ≥ MIN_RATIO:
             expand ← expand ∪ { p* }
-    <span style="color:#6b7280"># bring in new edges from each selected endpoint by fetching</span>
-    <span style="color:#6b7280"># nanopubs signed by its pubkey from peer registries</span>
+    <span># bring in new edges from each selected endpoint by fetching</span>
+    <span># nanopubs signed by its pubkey from peer registries</span>
     for p in expand:
         N ← N ∪ decl(pubkey(end(p)))
 
-    <span style="color:#7c3aed">▶ LOAD_DECLARATIONS (build trust edges + accounts)</span>
-    <span style="color:#7c3aed">▶ EXPAND_TRUST_PATHS</span>
+    <span>▶ LOAD_DECLARATIONS (build trust edges + accounts)</span>
+    <span>▶ EXPAND_TRUST_PATHS</span>
     for p in expand:
-        <span style="color:#6b7280"># (a', k') pairs reached from end(p) by one edge in N</span>
+        <span># (a', k') pairs reached from end(p) by one edge in N</span>
         endorsed ← { (a', k') : (end(p), (a', k')) ∈ N }
-        <span style="color:#6b7280"># number of distinct endorsed agents</span>
+        <span># number of distinct endorsed agents</span>
         n_agents ← |{ a' : (a', _) ∈ endorsed }|
         for (a', k') in endorsed:
-            <span style="color:#6b7280"># number of keys of a' that appear in endorsed</span>
+            <span># number of keys of a' that appear in endorsed</span>
             n_keys ← |{ k" : (a', k") ∈ endorsed }|
-            <span style="color:#6b7280"># split SPLIT of p.ratio equally, first by agent,</span>
-            <span style="color:#6b7280"># then, within each agent, by that agent's keys</span>
+            <span># split SPLIT of p.ratio equally, first by agent,</span>
+            <span># then, within each agent, by that agent's keys</span>
             r' ← p.ratio × SPLIT / n_agents / n_keys
-            <span style="color:#6b7280"># append the new hop as a new (non-primary) path</span>
+            <span># append the new hop as a new (non-primary) path</span>
             paths ← paths ∪ {
                 (chain(p) · (a', k'), r', d, ¬primary) }
-        <span style="color:#6b7280"># retain (1 - SPLIT) on p and mark it primary for end(p)</span>
+        <span># retain (1 - SPLIT) on p and mark it primary for end(p)</span>
         p.ratio   ← p.ratio × (1 - SPLIT)
         p.primary ← true
 
-    <span style="color:#7c3aed">▶ FINISH_ITERATION (no expansions ⇒ break)</span>
+    <span>▶ FINISH_ITERATION (no expansions ⇒ break)</span>
     if expand = ∅: break
 
-<span style="color:#7c3aed">▶ CALCULATE_TRUST_SCORES</span>
+<span>▶ CALCULATE_TRUST_SCORES</span>
 for each pubkey k:
-    <span style="color:#6b7280"># all trust paths ending at pubkey k</span>
+    <span># all trust paths ending at pubkey k</span>
     P_k          ← { p ∈ paths : pubkey(end(p)) = k }
-    <span style="color:#6b7280"># aggregate trust in [0,1]</span>
+    <span># aggregate trust in [0,1]</span>
     ratio(k)     ← Σ { p.ratio : p ∈ P_k }
-    <span style="color:#6b7280"># greedy diagnostic only; does not feed into ratio or quota</span>
+    <span># greedy diagnostic only; does not feed into ratio or quota</span>
     pathCount(k) ← |{ subset of P_k with pairwise disjoint
                       intermediate hops }|
-    <span style="color:#6b7280"># publication quota proportional to ratio(k), clamped</span>
+    <span># publication quota proportional to ratio(k), clamped</span>
     quota(k)     ← clamp(GLOBAL_QUOTA × ratio(k),
                          MIN_QUOTA, MAX_QUOTA)
-    <span style="color:#7c3aed">▶ ASSIGN_PUBKEYS</span>
-    <span style="color:#6b7280"># agents recorded as claiming key k</span>
+    <span>▶ ASSIGN_PUBKEYS</span>
+    <span># agents recorded as claiming key k</span>
     A_k          ← { a : ∃ p ∈ P_k, end(p) = (a, k) }
-    <span style="color:#6b7280"># approved iff only one agent claims k</span>
+    <span># approved iff only one agent claims k</span>
     status(k)    ← approved  if |A_k| = 1
                    contested otherwise
 
-<span style="color:#7c3aed">▶ FINALIZE_TRUST_STATE</span>
+<span>▶ FINALIZE_TRUST_STATE</span>
 trustStateHash ← SHA-256(canonical_serialisation(paths))</code></pre>
                 </div>
               </section>
