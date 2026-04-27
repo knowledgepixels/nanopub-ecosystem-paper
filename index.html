@@ -65,6 +65,7 @@
               <p>                 Nanopublications a were first introduced for capturing indivual scientific claims [<a class="ref" href="#ref-9">9</a>,<a class="ref" href="#ref-2">2</a>], and later broadened to capture any kind of formally structured information entity [<a class="ref" href="#ref-3">3</a>,<a class="ref" href="#ref-5">5</a>]. Identity, verifiability, and immutability of nanopublications are addressed by Trusty URIs [<a class="ref" href="#ref-8">8</a>], which embed a content-derived cryptographic hash into the URI itself so that every reference and every retrieval is self-verifying. These building blocks underpin the trust model of the ecosystem presented here.               </p>
               <p><mark class="todo">Work on this paragraph</mark> The paradigm of publishing without central gatekeepers was first outlined in [<a class="ref" href="#ref-6">6</a>] and subsequently realised as a running decentralized network of nanopublication servers with end-to-end provenance [<a class="ref" href="#ref-4">4</a>]. More recent work added a layer of decentralized services that enable semantic micro-contributions on top of that network [<a class="ref" href="#ref-7">7</a>]. Representative data-centric applications include the DisGeNET gene–disease resource [<a class="ref" href="#ref-10">10</a>] and a provenance-centered drug–drug interaction dataset [<a class="ref" href="#ref-1">1</a>].               </p>
               <p><mark class="todo">Position our ecosystem contribution against adjacent efforts such as FAIR Digital Objects, Solid, and broader scholarly knowledge-graph initiatives.</mark></p>
+              <p><mark class="todo">Check/revise this paragraph.</mark> The broader vision behind these efforts is articulated as the <em>Knowledge Space</em> [<a class="ref" href="#ref-11">11</a>]: an open and decentralized global socio-technical ecosystem in which human knowledge is shared as small, immutable, uniquely identified and cryptographically signed records, and in which trust in agents and services is established through transparent algorithms over community assessments. The present paper implements that vision in concrete form, providing the records, signing infrastructure, registries, query services, and trust computation that the cited work calls for.</p>
             </div>
           </section>
           <section id="approach" rel="schema:hasPart" resource="#approach">
@@ -119,101 +120,76 @@
                   <p>The trust graph is rooted in a single setting nanopublication that anchors a root agent. Introduction nanopublications bind agents to public keys, and endorsement nanopublications add trust edges between introductions; retractions invalidate previously declared edges. Trust is then propagated iteratively from the root through endorsement chains up to a maximum depth, and paths whose ratio falls below a fixed threshold are pruned.</p>
                   <p>At each hop, 90% of a parent's ratio is distributed uniformly across its endorsed children (and split further across their public keys) while 10% is retained on the parent path, yielding a geometric discount with depth. For a given public key, all trust paths reaching it are summed into a single aggregated ratio; the number of paths whose intermediate endorsers are pairwise disjoint is tracked separately as a diagnostic path count, but does not enter the score itself. The aggregated ratio in [0,1] is then mapped to an integer publication quota, clamped between a minimum and maximum value so that even weakly trusted agents retain a baseline and highly trusted ones do not dominate.</p>
                   <p>A public key claimed by exactly one agent is marked <em>approved</em>; a public key claimed by two or more distinct agents is marked <em>contested</em> and held back from general availability until the ambiguity is resolved. Finally, the complete set of trust paths is hashed (SHA-256) to a <em>trust-state hash</em> that is published in an HTTP header and served as an immutable snapshot endpoint, so that Nanopub Query instances and other consumers can atomically mirror consistent trust states.</p>
-                  <p>The core of this computation can be summarised as the following simplified procedure. Here <code>S</code> is the setting nanopublication and <code>N</code> is the set of introduction and endorsement nanopublications considered by the registry; <code>N</code> is not a fixed input but is built up incrementally via the auxiliary set <code>decl(k)</code>, defined as the introduction and endorsement nanopublications whose cryptographic signature can be verified against public key <code>k</code>. At each depth, the registry becomes aware of <code>decl(k)</code> for every key <code>k</code> it has just added to the trust frontier.</p>
-                  <p><mark class="todo">It would be helpful to clearly define the variables and functions: root(x), paths, frontier, N...</mark></p>
+                  <p>The core of this computation can be summarised as the simplified procedure below. Here <code>S</code> is the setting nanopublication and <code>N</code> is the set of trust-edge tuples considered by the registry; <code>N</code> is not a fixed input but is built up incrementally via the auxiliary set <code>decl(k)</code>, defined as the edges materialised from introduction and endorsement nanopublications whose cryptographic signature can be verified against public key <code>k</code>. At each depth, the registry becomes aware of <code>decl(k)</code> for every key <code>k</code> it has just added to the trust frontier.</p>
+                  <p>A trust path <code>p</code> is the central data structure: a record with a chain <code>chain(p)</code> of <code>(agent, pubkey)</code> hops ending at <code>end(p)</code>, a current contribution <code>p.ratio</code> in <code>[0,1]</code>, the depth <code>p.depth</code> at which it was first inserted, and a flag <code>p.primary</code> that is set once the path has been expanded and the residual contribution retained on it. A single sentinel <code>$</code> denotes the root <code>(agent, pubkey)</code> &mdash; the setting <code>S</code> acting as the root endorser. Each edge <code>((a, k), (a', k')) ∈ N</code> means that endorser <code>(a, k)</code> has signed an endorsement whose referenced introduction declares the binding <code>(a', k')</code>.</p>
+                  <p>At the top level, the procedure initialises the path set and edge set from <code>S</code>, then iterates the frontier-expansion loop up to a configured maximum depth, and finally derives per-key scores and a trust-state hash from the resulting path set.</p>
                   <p><mark class="todo">Task-enum annotations below are scaffolding for cross-checking against the Nanopub Registry </mark><code>Task</code><mark class="todo"> enum; remove before submission.</mark></p>
                   <pre><code><span>▶ LOAD_SETTING</span>
-Input:  setting nanopub S
-Output: per-pubkey (ratio, quota, status) and trust-state hash
+TrustCalculation(S):
+    Input:  setting nanopub S
+    Output: per-pubkey (ratio, quota, status) and trust-state hash
 
-<span># A trust path p is a record with:</span>
-<span>#   chain(p) — sequence of (agent, pubkey) hops, ending at end(p);</span>
-<span>#   p.ratio  — current contribution in [0,1];</span>
-<span>#   p.depth  — depth at which p was first inserted;</span>
-<span>#   p.primary — true once p has been expanded (and retained).</span>
-<span>#</span>
-<span># $ is the root (agent, pubkey) sentinel — the setting S</span>
-<span># acting as the root endorser.</span>
-<span>#</span>
-<span># N is a set of trust-edge tuples. Each edge ((a, k), (a', k'))</span>
-<span># means that endorser (a, k) has signed an endorsement whose</span>
-<span># referenced introduction declares the binding (a', k').</span>
-<span># decl(k) is the subset of such edges with endorser pubkey = k,</span>
-<span># materialized from peer-hosted nanopubs signed by k.</span>
-
-<span>▶ INIT_COLLECTIONS</span>
-<span># seed paths with the root path (ratio 1.0, depth 0, not primary)</span>
-paths ← { (chain = [$], ratio = 1.0, depth = 0, ¬primary) }
-<span># seed N with edges from $ to each (a', k') declared</span>
-<span># in the agent-intro collection referenced by S</span>
-N     ← { ($, (a', k')) : (a', k') declared by an intro
-                          in S's agent-intro collection }
-
-<span>▶ FINISH_ITERATION (loop control)</span>
-for d = 1 to MAX_DEPTH:
-
-    <span>▶ LOAD_CORE (ratio gate + fetch decl(k) from peers)</span>
-    <span># for each distinct endpoint of a non-primary path at depth</span>
-    <span># d-1, keep its highest-ratio such path (dropping those</span>
-    <span># whose ratio falls below MIN_RATIO)</span>
+    (paths, N) ← Initialize(S)
+    for d = 1 to MAX_DEPTH:
+        expand ← SelectFrontier(paths, d - 1)
+        if expand = ∅: break
+        for p in expand:
+            N ← N ∪ decl(pubkey(end(p)))
+        Expand(paths, expand, N, d)
+    scores         ← ScoreKeys(paths)
+    trustStateHash ← FinalizeState(paths)
+    return (scores, trustStateHash)</code></pre>
+                  <p><em>Initialisation.</em> The path set is seeded with a single root path of ratio <code>1.0</code> at depth <code>0</code>, anchored at the sentinel <code>$</code>. The edge set is seeded with the bindings declared by the agent-introduction collection referenced from <code>S</code>, so that the first iteration of the loop already has edges to follow out of the root.</p>
+                  <pre><code><span>▶ INIT_COLLECTIONS</span>
+Initialize(S):
+    paths ← { (chain = [$], ratio = 1.0, depth = 0, ¬primary) }
+    N     ← { ($, (a', k')) : (a', k') declared by an intro
+                              in S's agent-intro collection }
+    return (paths, N)</code></pre>
+                  <p><em>Frontier selection.</em> At each depth, the registry collects the endpoints of all non-primary paths inserted at the previous depth and, for each such endpoint, retains only the highest-ratio path leading to it. Paths whose ratio has fallen below <code>MIN_RATIO</code> are dropped, which acts as the pruning gate that keeps the frontier finite. For each retained frontier path, the registry then fetches <code>decl(k)</code> from peer registries &mdash; i.e.&nbsp;the nanopublications signed by its endpoint's public key &mdash; and folds the resulting edges into <code>N</code>.</p>
+                  <pre><code><span>▶ LOAD_CORE</span>
+SelectFrontier(paths, d):
     expand ← ∅
-    <span># for each endpoint of a non-primary path at depth d-1...</span>
     for x in { end(p) : p ∈ paths,
-                        p.depth = d-1, ¬p.primary }:
-        <span># ...pick the highest-ratio such path to x</span>
+                        p.depth = d, ¬p.primary }:
         p* ← argmax { p.ratio : p ∈ paths, end(p) = x,
-                                p.depth = d-1, ¬p.primary }
+                                p.depth = d, ¬p.primary }
         if p*.ratio ≥ MIN_RATIO:
             expand ← expand ∪ { p* }
-    <span># bring in new edges from each selected endpoint by fetching</span>
-    <span># nanopubs signed by its pubkey from peer registries</span>
+    return expand</code></pre>
+                  <p><em>Path expansion.</em> A frontier path is expanded by distributing a fraction <code>SPLIT</code> of its current ratio across the agents endorsed from its endpoint, splitting first by agent and then, within each agent, equally across the agent's endorsed public keys; the remaining <code>(1 - SPLIT)</code> stays on the parent path, which is then marked primary so it is not re-expanded. Each new <code>(a', k')</code> hop is appended as a fresh non-primary path at the current depth.</p>
+                  <pre><code><span>▶ LOAD_DECLARATIONS</span>
+<span>▶ EXPAND_TRUST_PATHS</span>
+Expand(paths, expand, N, d):
     for p in expand:
-        N ← N ∪ decl(pubkey(end(p)))
-
-    <span>▶ LOAD_DECLARATIONS (build trust edges + accounts)</span>
-    <span>▶ EXPAND_TRUST_PATHS</span>
-    for p in expand:
-        <span># (a', k') pairs reached from end(p) by one edge in N</span>
         endorsed ← { (a', k') : (end(p), (a', k')) ∈ N }
-        <span># number of distinct endorsed agents</span>
         n_agents ← |{ a' : (a', _) ∈ endorsed }|
         for (a', k') in endorsed:
-            <span># number of keys of a' that appear in endorsed</span>
             n_keys ← |{ k" : (a', k") ∈ endorsed }|
-            <span># split SPLIT of p.ratio equally, first by agent,</span>
-            <span># then, within each agent, by that agent's keys</span>
-            r' ← p.ratio × SPLIT / n_agents / n_keys
-            <span># append the new hop as a new (non-primary) path</span>
+            r'    ← p.ratio × SPLIT / n_agents / n_keys
             paths ← paths ∪ {
                 (chain(p) · (a', k'), r', d, ¬primary) }
-        <span># retain (1 - SPLIT) on p and mark it primary for end(p)</span>
         p.ratio   ← p.ratio × (1 - SPLIT)
-        p.primary ← true
-
-    <span>▶ FINISH_ITERATION (no expansions ⇒ break)</span>
-    if expand = ∅: break
-
-<span>▶ CALCULATE_TRUST_SCORES</span>
-for each pubkey k:
-    <span># all trust paths ending at pubkey k</span>
-    P_k          ← { p ∈ paths : pubkey(end(p)) = k }
-    <span># aggregate trust in [0,1]</span>
-    ratio(k)     ← Σ { p.ratio : p ∈ P_k }
-    <span># greedy diagnostic only; does not feed into ratio or quota</span>
-    pathCount(k) ← |{ subset of P_k with pairwise disjoint
-                      intermediate hops }|
-    <span># publication quota proportional to ratio(k), clamped</span>
-    quota(k)     ← clamp(GLOBAL_QUOTA × ratio(k),
-                         MIN_QUOTA, MAX_QUOTA)
-    <span>▶ ASSIGN_PUBKEYS</span>
-    <span># agents recorded as claiming key k</span>
-    A_k          ← { a : ∃ p ∈ P_k, end(p) = (a, k) }
-    <span># approved iff only one agent claims k</span>
-    status(k)    ← approved  if |A_k| = 1
-                   contested otherwise
-
-<span>▶ FINALIZE_TRUST_STATE</span>
-trustStateHash ← SHA-256(canonical_serialisation(paths))</code></pre>
+        p.primary ← true</code></pre>
+                  <p><em>Per-key scoring.</em> Once iteration stops, all trust paths ending at a given public key <code>k</code> are aggregated into a single ratio in <code>[0,1]</code>; the number of pairwise-disjoint paths is recorded separately as a diagnostic and does not feed into the ratio or quota. The aggregated ratio is mapped to an integer publication quota, clamped between <code>MIN_QUOTA</code> and <code>MAX_QUOTA</code>. A key claimed by exactly one agent is marked <em>approved</em>; one claimed by two or more is marked <em>contested</em>.</p>
+                  <pre><code><span>▶ CALCULATE_TRUST_SCORES</span>
+<span>▶ ASSIGN_PUBKEYS</span>
+ScoreKeys(paths):
+    for each pubkey k:
+        P_k          ← { p ∈ paths : pubkey(end(p)) = k }
+        ratio(k)     ← Σ { p.ratio : p ∈ P_k }
+        pathCount(k) ← |{ subset of P_k with pairwise disjoint
+                          intermediate hops }|
+        quota(k)     ← clamp(GLOBAL_QUOTA × ratio(k),
+                             MIN_QUOTA, MAX_QUOTA)
+        A_k          ← { a : ∃ p ∈ P_k, end(p) = (a, k) }
+        status(k)    ← approved  if |A_k| = 1
+                       contested otherwise
+    return { (k, ratio(k), pathCount(k), quota(k), status(k)) }</code></pre>
+                  <p><em>Trust-state hash.</em> The full path set is canonicalised and hashed (SHA-256) into the trust-state hash that downstream services use to mirror a consistent view; because the procedure above is deterministic in <code>S</code> and <code>N</code>, two registries with the same inputs produce the same hash.</p>
+                  <pre><code><span>▶ FINALIZE_TRUST_STATE</span>
+FinalizeState(paths):
+    return SHA-256(canonical_serialisation(paths))</code></pre>
                 </div>
               </section>
               <section id="nanopub-query" rel="schema:hasPart" resource="#nanopub-query">
@@ -289,6 +265,7 @@ trustStateHash ← SHA-256(canonical_serialisation(paths))</code></pre>
               <li id="ref-8" property="schema:citation">Kuhn, T., Dumontier, M.: Trusty URIs: verifiable, immutable, and permanent digital artifacts for linked data. In: Proceedings of the 11th Extended Semantic Web Conference (ESWC 2014). Springer (2014). <a href="https://doi.org/10.1007/978-3-319-07443-6_27">https://doi.org/10.1007/978-3-319-07443-6_27</a></li>
               <li id="ref-9" property="schema:citation">Mons, B., Velterop, J.: Nano-publication in the e-science era. In: Proceedings of the Workshop on Semantic Web Applications in Scientific Discourse (SWASD 2009). CEUR Workshop Proceedings, vol. 523 (2009). <a href="https://ceur-ws.org/Vol-523/Mons.pdf">https://ceur-ws.org/Vol-523/Mons.pdf</a></li>
               <li id="ref-10" property="schema:citation">Queralt-Rosinach, N., Kuhn, T., Chichester, C., Dumontier, M., Sanz, F., Furlong, L.I.: Publishing DisGeNET as nanopublications. Semantic Web Journal 7(5), 519–528 (2016). <a href="https://doi.org/10.3233/SW-150189">https://doi.org/10.3233/SW-150189</a></li>
+              <li id="ref-11" property="schema:citation">Kuhn, T.: Knowledge Space. Version 1.0 (2026). <a href="https://w3id.org/knowledge-space/">https://w3id.org/knowledge-space/</a></li>
             </ol>
           </section>
         </div>
