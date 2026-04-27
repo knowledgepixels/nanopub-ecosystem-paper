@@ -125,11 +125,11 @@
                   <p>At the top level, the procedure initialises the path set and the local collections from <code>S</code>, then iterates the frontier-expansion loop up to a configured maximum depth. At each iteration, for every key that has just entered the trust frontier, peer registries are queried twice — once for the <code>(k, declaration-type)</code> list and once for the <code>(k, endorse-type)</code> list; the responses are appended to the local <code>declarations</code> and <code>endorsements</code> collections respectively, the edge set <code>N</code> is extended accordingly, and only then are the path expansions performed. After the loop, per-key scores and a trust-state hash are derived from the resulting path set without further peer access.</p>
                   <p><mark class="todo">Task-enum annotations below are scaffolding for cross-checking against the Nanopub Registry </mark><mark class="todo"> enum; remove before submission.</mark></p>
                   <pre><code>Globals:
-  peers        — handles for the configured peer registries (read-only)
+  peers        — configured peer registries (read-only)
   paths        — set of trust paths under construction
   declarations — local cache of fetched declaration nanopubs
   endorsements — local cache of fetched endorsement nanopubs
-  N            — trust-edge set, derived from declarations and endorsements
+  N            — trust edges, from declarations + endorsements
 
 <span>▶ LOAD_SETTING</span>
 IDEBT(S):
@@ -154,10 +154,13 @@ IDEBT(S):
                   <p><em>Initialisation.</em> The setting <code>S</code> itself is held in local storage and contributes no peer traffic. The path set is seeded with a single root path of ratio <code>1.0</code> at depth <code>0</code>, anchored at the sentinel <code>$</code>. Peer access then takes two forms: first, a single retrieval of the agent-intro <em>index</em> nanopub referenced from <code>S</code> — one nanopub that lists the Trusty URIs of the declarations made by the root agent, but does not contain the declarations themselves — and second, a retrieval-by-Trusty-URI of each of those declarations in turn. The fetched declarations populate the local <code>declarations</code> collection; <code>endorsements</code> starts empty; and the edge set <code>N</code> is seeded with edges from <code>$</code> to each <code>(a', k')</code> binding declared by them, so that the first iteration of the depth loop already has edges to follow out of the root. (For brevity the procedure below performs the index fetch and the per-declaration retrievals together in <code>Initialize</code>; the actual Registry implementation interleaves the per-declaration retrievals with the first iteration of the depth loop, treating the index entries as placeholder endorsement links until they are resolved, with no effect on the resulting trust state.)</p>
                   <pre><code><span>▶ INIT_COLLECTIONS</span>
 Initialize(S):
-  paths        ← { (chain = [$], ratio = 1.0, depth = 0, ¬primary) }
-  declarations ← { peers.fetchByUri(u) : u ∈ peers.fetch(S.agentIntroCollection) }
+  paths        ← { (chain = [$], ratio = 1.0,
+                    depth = 0, ¬primary) }
+  declarations ← { peers.fetchByUri(u) :
+                   u ∈ peers.fetch(S.agentIntroCollection) }
   endorsements ← ∅
-  N            ← { ($, (a', k')) : (a', k') declared by some D ∈ declarations }</code></pre>
+  N            ← { ($, (a', k')) : (a', k') declared
+                                   by some D ∈ declarations }</code></pre>
                   <p><em>Frontier selection.</em> At each depth, the registry collects the endpoints of all non-primary paths inserted at the previous depth and, for each such endpoint, retains only the highest-ratio path leading to it. Paths whose ratio has fallen below <code>MIN_RATIO</code> are dropped, which acts as the pruning gate that keeps the frontier finite. The selection step is purely local: it consults <code>paths</code> only and touches neither peer registries nor <code>declarations</code> / <code>endorsements</code>. The peer fetch and the corresponding update of <code>declarations</code>, <code>endorsements</code>, and <code>N</code> happen back in the driver loop above, between <code>SelectFrontier</code> and <code>Expand</code>, with two type-scoped list resources retrieved per surviving frontier endpoint — one for the declaration-type partition <code>(k, declaration-type)</code> and one for the endorsement-type partition <code>(k, endorse-type)</code>.</p>
                   <pre><code><span>▶ LOAD_CORE</span>
 SelectFrontier(d):
