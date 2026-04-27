@@ -124,79 +124,85 @@
                   <p>A trust path <code>p</code> is the central data structure: a record with a chain <code>chain(p)</code> of <code>(agent, pubkey)</code> hops ending at <code>end(p)</code>, a current contribution <code>p.ratio</code> in <code>[0,1]</code>, the depth <code>p.depth</code> at which it was first inserted, and a flag <code>p.primary</code> that is set once the path has been expanded and the residual contribution retained on it. A single sentinel <code>$</code> denotes the root <code>(agent, pubkey)</code> &mdash; the setting <code>S</code> acting as the root endorser. The registry additionally maintains two local collections of nanopublications &mdash; <code>intros</code> (introductions) and <code>endorsements</code> &mdash; which it grows by fetching from peer registries as new keys enter the trust frontier. Because peers expose nanopublications already partitioned by <code>(pubkey, type)</code>, these fetches are themselves type-scoped: for a given key <code>k</code>, the introductions and the endorsements live on distinct list resources and are pulled with two separate requests rather than retrieved together and filtered locally. The trust-edge set <code>N</code> is derived from these collections, with each edge <code>((a, k), (a', k')) ∈ N</code> meaning that an endorsement in <code>endorsements</code> signed by <code>(a, k)</code> references an introduction in <code>intros</code> that declares the binding <code>(a', k')</code>. The notation <code>decl(k)</code> denotes the subset of edges in which the endorser key is <code>k</code>.</p>
                   <p>At the top level, the procedure initialises the path set and the local collections from <code>S</code>, then iterates the frontier-expansion loop up to a configured maximum depth. At each iteration, for every key that has just entered the trust frontier, peer registries are queried twice &mdash; once for the <code>(k, intro-type)</code> list and once for the <code>(k, endorse-type)</code> list; the responses are appended to the local <code>intros</code> and <code>endorsements</code> collections respectively, the edge set <code>N</code> is extended accordingly, and only then are the path expansions performed. After the loop, per-key scores and a trust-state hash are derived from the resulting path set without further peer access.</p>
                   <p><mark class="todo">Task-enum annotations below are scaffolding for cross-checking against the Nanopub Registry </mark><code>Task</code><mark class="todo"> enum; remove before submission.</mark></p>
-                  <pre><code><span>▶ LOAD_SETTING</span>
-TrustCalculation(S):
-    Input:  setting nanopub S
-    Output: per-pubkey (ratio, quota, status) and trust-state hash
+                  <pre><code>Globals:
+  peers        — handles for the configured peer registries (read-only)
+  paths        — set of trust paths under construction
+  intros       — local cache of fetched introduction nanopubs
+  endorsements — local cache of fetched endorsement nanopubs
+  N            — trust-edge set, derived from intros and endorsements
 
-    (paths, intros, endorsements, N) ← Initialize(S)
-    for d = 1 to MAX_DEPTH:
-        expand ← SelectFrontier(paths, d - 1)
-        if expand = ∅: break
-        for p in expand:
-            k ← pubkey(end(p))
-            newIntros       ← peers.fetchList(k, INTRO_TYPE)
-            newEndorsements ← peers.fetchList(k, ENDORSE_TYPE)
-            intros          ← intros       ∪ newIntros
-            endorsements    ← endorsements ∪ newEndorsements
-            N               ← N ∪ decl(k)
-        Expand(paths, expand, N, d)
-    scores         ← ScoreKeys(paths)
-    trustStateHash ← FinalizeState(paths)
-    return (scores, trustStateHash)</code></pre>
+<span>▶ LOAD_SETTING</span>
+TrustCalculation(S):
+  Input:  setting nanopub S
+  Output: per-pubkey (ratio, quota, status) and trust-state hash
+
+  Initialize(S)
+  for d = 1 to MAX_DEPTH:
+    expand ← SelectFrontier(d - 1)
+    if expand = ∅: break
+    for p in expand:
+      k ← pubkey(end(p))
+      newIntros       ← peers.fetchList(k, INTRO_TYPE)
+      newEndorsements ← peers.fetchList(k, ENDORSE_TYPE)
+      intros          ← intros       ∪ newIntros
+      endorsements    ← endorsements ∪ newEndorsements
+      N               ← N ∪ decl(k)
+    Expand(expand, d)
+  scores         ← ScoreKeys()
+  trustStateHash ← FinalizeState()
+  return (scores, trustStateHash)</code></pre>
                   <p><em>Initialisation.</em> The setting <code>S</code> itself is held in local storage and contributes no peer traffic. The path set is seeded with a single root path of ratio <code>1.0</code> at depth <code>0</code>, anchored at the sentinel <code>$</code>. Peer access then takes two forms: first, a single retrieval of the agent-intro <em>index</em> nanopub referenced from <code>S</code> &mdash; one nanopub that lists the Trusty URIs of the introductions declared by the root agent, but does not contain the introductions themselves &mdash; and second, a retrieval-by-Trusty-URI of each of those introductions in turn. The fetched introductions populate the local <code>intros</code> collection; <code>endorsements</code> starts empty; and the edge set <code>N</code> is seeded with edges from <code>$</code> to each <code>(a', k')</code> binding declared by those introductions, so that the first iteration of the depth loop already has edges to follow out of the root. (For brevity the procedure below performs the index fetch and the per-intro retrievals together in <code>Initialize</code>; the actual Registry implementation interleaves the per-intro retrievals with the first iteration of the depth loop, treating the index entries as placeholder endorsement links until they are resolved, with no effect on the resulting trust state.)</p>
                   <pre><code><span>▶ INIT_COLLECTIONS</span>
 Initialize(S):
-    paths ← { (chain = [$], ratio = 1.0, depth = 0, ¬primary) }
-    coll         ← peers.fetch(S.agentIntroCollection)
-    intros       ← { peers.fetchByUri(u) : u ∈ coll }
-    endorsements ← ∅
-    N ← { ($, (a', k')) : (a', k') declared by an intro ∈ intros }
-    return (paths, intros, endorsements, N)</code></pre>
+  paths        ← { (chain = [$], ratio = 1.0, depth = 0, ¬primary) }
+  coll         ← peers.fetch(S.agentIntroCollection)
+  intros       ← { peers.fetchByUri(u) : u ∈ coll }
+  endorsements ← ∅
+  N            ← { ($, (a', k')) : (a', k') declared by an intro ∈ intros }</code></pre>
                   <p><em>Frontier selection.</em> At each depth, the registry collects the endpoints of all non-primary paths inserted at the previous depth and, for each such endpoint, retains only the highest-ratio path leading to it. Paths whose ratio has fallen below <code>MIN_RATIO</code> are dropped, which acts as the pruning gate that keeps the frontier finite. The selection step is purely local: it consults <code>paths</code> only and touches neither peer registries nor <code>intros</code> / <code>endorsements</code>. The peer fetch and the corresponding update of <code>intros</code>, <code>endorsements</code>, and <code>N</code> happen back in the driver loop above, between <code>SelectFrontier</code> and <code>Expand</code>, with two type-scoped list resources retrieved per surviving frontier endpoint &mdash; one for the introduction-type partition <code>(k, intro-type)</code> and one for the endorsement-type partition <code>(k, endorse-type)</code>.</p>
                   <pre><code><span>▶ LOAD_CORE</span>
-SelectFrontier(paths, d):
-    expand ← ∅
-    for x in { end(p) : p ∈ paths,
-                        p.depth = d, ¬p.primary }:
-        p* ← argmax { p.ratio : p ∈ paths, end(p) = x,
-                                p.depth = d, ¬p.primary }
-        if p*.ratio ≥ MIN_RATIO:
-            expand ← expand ∪ { p* }
-    return expand</code></pre>
+SelectFrontier(d):
+  expand ← ∅
+  for x in { end(p) : p ∈ paths,
+                      p.depth = d, ¬p.primary }:
+    p* ← argmax { p.ratio : p ∈ paths, end(p) = x,
+                            p.depth = d, ¬p.primary }
+    if p*.ratio ≥ MIN_RATIO:
+      expand ← expand ∪ { p* }
+  return expand</code></pre>
                   <p><em>Path expansion.</em> A frontier path is expanded by distributing a fraction <code>SPLIT</code> of its current ratio across the agents endorsed from its endpoint, splitting first by agent and then, within each agent, equally across the agent's endorsed public keys; the remaining <code>(1 - SPLIT)</code> stays on the parent path, which is then marked primary so it is not re-expanded. Each new <code>(a', k')</code> hop is appended as a fresh non-primary path at the current depth.</p>
                   <pre><code><span>▶ LOAD_DECLARATIONS</span>
 <span>▶ EXPAND_TRUST_PATHS</span>
-Expand(paths, expand, N, d):
-    for p in expand:
-        endorsed ← { (a', k') : (end(p), (a', k')) ∈ N }
-        n_agents ← |{ a' : (a', _) ∈ endorsed }|
-        for (a', k') in endorsed:
-            n_keys ← |{ k" : (a', k") ∈ endorsed }|
-            r'    ← p.ratio × SPLIT / n_agents / n_keys
-            paths ← paths ∪ {
-                (chain(p) · (a', k'), r', d, ¬primary) }
-        p.ratio   ← p.ratio × (1 - SPLIT)
-        p.primary ← true</code></pre>
+Expand(expand, d):
+  for p in expand:
+    endorsed ← { (a', k') : (end(p), (a', k')) ∈ N }
+    n_agents ← |{ a' : (a', _) ∈ endorsed }|
+    for (a', k') in endorsed:
+      n_keys ← |{ k" : (a', k") ∈ endorsed }|
+      r'    ← p.ratio × SPLIT / n_agents / n_keys
+      paths ← paths ∪ {
+        (chain(p) · (a', k'), r', d, ¬primary) }
+    p.ratio   ← p.ratio × (1 - SPLIT)
+    p.primary ← true</code></pre>
                   <p><em>Per-key scoring.</em> Once iteration stops, all trust paths ending at a given public key <code>k</code> are aggregated into a single ratio in <code>[0,1]</code>; the number of pairwise-disjoint paths is recorded separately as a diagnostic and does not feed into the ratio or quota. The aggregated ratio is mapped to an integer publication quota, clamped between <code>MIN_QUOTA</code> and <code>MAX_QUOTA</code>. A key claimed by exactly one agent is marked <em>approved</em>; one claimed by two or more is marked <em>contested</em>.</p>
                   <pre><code><span>▶ CALCULATE_TRUST_SCORES</span>
 <span>▶ ASSIGN_PUBKEYS</span>
-ScoreKeys(paths):
-    for each pubkey k:
-        P_k          ← { p ∈ paths : pubkey(end(p)) = k }
-        ratio(k)     ← Σ { p.ratio : p ∈ P_k }
-        pathCount(k) ← |{ subset of P_k with pairwise disjoint
-                          intermediate hops }|
-        quota(k)     ← clamp(GLOBAL_QUOTA × ratio(k),
-                             MIN_QUOTA, MAX_QUOTA)
-        A_k          ← { a : ∃ p ∈ P_k, end(p) = (a, k) }
-        status(k)    ← approved  if |A_k| = 1
-                       contested otherwise
-    return { (k, ratio(k), pathCount(k), quota(k), status(k)) }</code></pre>
+ScoreKeys():
+  for each pubkey k:
+    P_k          ← { p ∈ paths : pubkey(end(p)) = k }
+    ratio(k)     ← Σ { p.ratio : p ∈ P_k }
+    pathCount(k) ← |{ subset of P_k with pairwise disjoint
+                      intermediate hops }|
+    quota(k)     ← clamp(GLOBAL_QUOTA × ratio(k),
+                         MIN_QUOTA, MAX_QUOTA)
+    A_k          ← { a : ∃ p ∈ P_k, end(p) = (a, k) }
+    status(k)    ← approved  if |A_k| = 1
+                   contested otherwise
+  return { (k, ratio(k), pathCount(k), quota(k), status(k)) }</code></pre>
                   <p><em>Trust-state hash.</em> The full path set is canonicalised and hashed (SHA-256) into the trust-state hash that downstream services use to mirror a consistent view; because the procedure above is deterministic in <code>S</code> and <code>N</code>, two registries with the same inputs produce the same hash.</p>
                   <pre><code><span>▶ FINALIZE_TRUST_STATE</span>
-FinalizeState(paths):
-    return SHA-256(canonical_serialisation(paths))</code></pre>
+FinalizeState():
+  return SHA-256(canonical_serialisation(paths))</code></pre>
                 </div>
               </section>
               <section id="nanopub-query" rel="schema:hasPart" resource="#nanopub-query">
