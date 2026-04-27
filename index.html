@@ -166,12 +166,13 @@ SelectFrontier(d):
     if p*.ratio ≥ MIN_RATIO:
       expand ← expand ∪ { p* }
   return expand</code></pre>
-                  <p><em>Path expansion.</em> A frontier path is expanded by distributing a fraction <code>SPLIT</code> of its current ratio across the agents endorsed from its endpoint, splitting first by agent and then, within each agent, equally across the agent's endorsed public keys; the remaining <code>(1 - SPLIT)</code> stays on the parent path, which is then marked primary so it is not re-expanded. Each new <code>(a, k)</code> hop is appended as a fresh non-primary path at the current depth.</p>
+                  <p><em>Path expansion.</em> A frontier path is expanded by distributing a fraction <code>SPLIT</code> of its current ratio across the agents endorsed from its endpoint, splitting first by agent and then, within each agent, equally across the agent's endorsed public keys; the remaining <code>(1 - SPLIT)</code> stays on the parent path, which is then marked primary so it is not re-expanded. Each new <code>(a, k)</code> hop is appended as a fresh non-primary path at the current depth. Endorsements pointing to accounts that already appear as the endpoint of some path in <code>paths</code> are skipped at this step (mirroring the registry's <code>accounts_loading</code> dedup), so every account ends up as the endpoint of at most one path &mdash; and therefore as the endpoint of at most one primary path.</p>
                   <pre><code><span>▶ LOAD_DECLARATIONS</span>
 <span>▶ EXPAND_TRUST_PATHS</span>
 Expand(expand, N, d):
   for p in expand:
-    endorsed ← { (a, k) : (end(p), (a, k)) ∈ N }
+    endorsed ← { (a, k) : (end(p), (a, k)) ∈ N,
+                          ¬∃ p' ∈ paths : end(p') = (a, k) }
     n_agents ← |{ a : (a, _) ∈ endorsed }|
     for (a, k) in endorsed:
       n_keys ← |{ k' : (a, k') ∈ endorsed }|
