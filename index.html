@@ -117,7 +117,7 @@
                   <p><mark class="todo">double-check which parameters are actually carried by the setting nanopublication versus being hard-coded or environment-configurable in the Registry.</mark></p>
                   <p>Each Registry is parameterised by a <em>setting</em> nanopublication that fixes the root of its trust graph and the broader conditions under which the instance operates. The setting declares at least one initial trusted signer from which all other trust ultimately flows, the Registry's type coverage, and the numeric parameters of the trust computation (global and per-signer quota bounds, decay factor, maximum depth, and pruning threshold). Because the setting is itself a nanopublication, it is immutable, signed, and referenceable by its Trusty URI; different Registry instances can therefore declare different settings and, by consequence, different trust roots and policies.</p>
                   <p>Each Nanopub Registry derives a per-public-key trust score using an algorithm we call <em>Iterative Declaration-Endorsement Bounded Trust</em> (IDEBT). Introduction nanopublications bind agents to public keys, endorsement nanopublications add trust edges between such bindings, and retractions invalidate previously declared edges. Trust originates from the setting and is propagated iteratively along these endorsement edges, bounded by a maximum recursion depth <code>MAX_DEPTH</code> and a minimum-ratio cutoff <code>MIN_RATIO</code>. The computation is deterministic and re-runnable, so peers can mirror a consistent versioned snapshot.</p>
-                  <p>A trust path <code>p</code> is the central data structure: a record with a chain <code>chain(p)</code> of <code>(agent, pubkey)</code> hops ending at <code>end(p)</code>, a contribution <code>p.ratio</code> in <code>[0,1]</code>, the depth <code>p.depth</code> at which it was inserted, and a flag <code>p.primary</code> that is set once the path has been expanded. A sentinel <code>$</code> denotes the root <code>(agent, pubkey)</code>, with the setting acting as the root endorser. The registry additionally maintains two local nanopub collections — <code>declarations</code> (also known as <em>introductions</em>) and <code>endorsements</code> — which it grows by fetching from peer registries as new keys enter the trust frontier. Because peers expose nanopublications partitioned by <code>(pubkey, type)</code>, declarations and endorsements live on distinct list resources and are pulled with two separate requests per key. The trust-edge set <code>N</code> is derived from these collections: an edge <code>((a, k), (a', k')) ∈ N</code> records that an endorsement signed by <code>(a, k)</code> references a declaration that declares the binding <code>(a', k')</code>.</p>
+                  <p>A trust path <code>p</code> is the central data structure: a record with a chain <code>chain(p)</code> of <code>(agent, pubkey)</code> hops ending at <code>end(p)</code>, a contribution <code>p.ratio</code> in <code>[0,1]</code>, and a flag <code>p.primary</code> that is set once the path has been expanded. We write <code>length(p) = |chain(p)| − 1</code> for the number of hops, which equals the depth at which <code>p</code> was inserted. A sentinel <code>$</code> denotes the root <code>(agent, pubkey)</code>, with the setting acting as the root endorser. The registry additionally maintains two local nanopub collections — <code>declarations</code> (also known as <em>introductions</em>) and <code>endorsements</code> — which it grows by fetching from peer registries as new keys enter the trust frontier. Because peers expose nanopublications partitioned by <code>(pubkey, type)</code>, declarations and endorsements live on distinct list resources and are pulled with two separate requests per key. The trust-edge set <code>N</code> is derived from these collections: an edge <code>((a, k), (a', k')) ∈ N</code> records that an endorsement signed by <code>(a, k)</code> references a declaration that declares the binding <code>(a', k')</code>.</p>
                   <p>The driver is shown below. The <code>setting</code> is held in local storage and contributes no peer traffic; <code>declarations</code> are seeded from the agent-intro index it references. <code>IDEBT</code> reads the global <code>peers</code> and <code>setting</code> and writes its result into the global <code>paths</code>, from which the per-key scores and trust-state hash in the next subsection are derived without further peer access. (The pseudo-code performs the index fetch and the per-declaration retrievals together at the top of <code>IDEBT</code>; the implementation interleaves the per-declaration retrievals with the first iteration of the depth loop, with no effect on the resulting trust state.)</p>
                   <pre><code>Globals:
   peers   — configured peer registries (read-only)
@@ -125,8 +125,7 @@
   paths   — set of trust paths (filled by IDEBT)
 
 IDEBT():
-  paths        ← { (chain = [$], ratio = 1.0,
-                    depth = 0, ¬primary) }
+  paths        ← { (chain = [$], ratio = 1.0, ¬primary) }
   declarations ← { peers.fetch(u) :
                    u ∈ peers.fetch(setting.agentIntroCollection) }
   endorsements ← ∅
@@ -144,20 +143,20 @@ IDEBT():
                 ∃ e ∈ endorsements signed by (a, k),
                 ∃ D ∈ declarations referenced by e,
                 D declares (a', k') }
-    Expand(expand, N, d)</code></pre>
+    Expand(expand, N)</code></pre>
                   <p><em>Frontier selection.</em> <code>SelectFrontier</code> retains the highest-ratio non-primary path per endpoint at the previous depth and drops anything below <code>MIN_RATIO</code>; it is purely local and triggers no peer traffic. The fetches that update <code>declarations</code>, <code>endorsements</code>, and <code>N</code> happen back in the driver between selection and expansion.</p>
                   <pre><code>SelectFrontier(d):
   expand ← ∅
   for x in { end(p) : p ∈ paths,
-                      p.depth = d, ¬p.primary }:
+                      length(p) = d, ¬p.primary }:
     p* ← argmax { p.ratio : p ∈ paths, end(p) = x,
-                            p.depth = d, ¬p.primary }
+                            length(p) = d, ¬p.primary }
     if p*.ratio ≥ MIN_RATIO:
       expand ← expand ∪ { p* }
   return expand</code></pre>
                   <p><em>Tie-breaking.</em> The <code>argmax</code> in <code>SelectFrontier</code> is in general not unique: two non-primary paths to the same endpoint at the same depth can carry identical ratios — for instance, equally branched siblings reaching it via disjoint chains. To preserve determinism, the implementation breaks ties by an ascending SHA-256 hash of the path identifier salted with the setting, <code>sorthash = SHA-256(setting || pathId)</code>; the effective selection key is therefore <code>(p.ratio, −sorthash)</code> in lexicographic order. The same secondary key is used wherever paths are sorted by ratio, so two registries with the same <code>setting</code> produce identical path sets — and therefore identical trust-state hashes — even when ratios collide.</p>
                   <p><em>Path expansion.</em> <code>Expand</code> retains a fraction <code>SELF_RATIO</code> of each frontier path's ratio on the parent — which is then marked primary so it is not re-expanded — and distributes the remaining <code>(1 − SELF_RATIO)</code> across its endorsed children, splitting first by agent and then equally across that agent's endorsed public keys. Endorsements pointing to accounts already reached are skipped (mirroring the registry's <code>accounts_loading</code> dedup), enforcing the design invariant that every account is the endpoint of at most one primary path.</p>
-                  <pre><code>Expand(expand, N, d):
+                  <pre><code>Expand(expand, N):
   for p in expand:
     endorsed ← { (a, k) : (end(p), (a, k)) ∈ N,
                           ¬∃ p' ∈ paths : end(p') = (a, k) }
@@ -166,7 +165,7 @@ IDEBT():
       n_keys ← |{ k' : (a, k') ∈ endorsed }|
       r     ← p.ratio × (1 - SELF_RATIO) / n_agents / n_keys
       paths ← paths ∪ {
-        (chain(p) · (a, k), r, d, ¬primary) }
+        (chain(p) · (a, k), r, ¬primary) }
     p.ratio   ← p.ratio × SELF_RATIO
     p.primary ← true</code></pre>
                   <p><em>Bounded expansion.</em> Although several non-primary paths may in principle reach the same endpoint <code>(a, k)</code>, <code>SelectFrontier</code> retains only the highest-ratio one per endpoint at each depth, and only those selected primaries are fed into <code>Expand</code>. The per-depth expansion work is therefore bounded by the number of distinct frontier endpoints — proportional to the number of accounts newly touched at that depth — rather than growing with the fan-out from earlier hops. Combined with the <code>MIN_RATIO</code> pruning gate and the geometric ratio decay, this keeps the total expansion cost finite and independent of how many redundant endorsement paths exist between agents.</p>
