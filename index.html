@@ -16,7 +16,7 @@
         <h1 property="schema:name">A Decentralized Infrastructure for Trust-Aware Open Knowledge Sharing by Humans and AI Agents <span class="draft-tag">[DRAFT]</span></h1>
         <dl id="document-modified">
           <dt>Modified</dt>
-          <dd><time content="2026-04-28T08:34:32.716Z" datatype="xsd:dateTime" datetime="2026-04-28T08:34:32.716Z" property="schema:dateModified">4/28/2026</time></dd>
+          <dd><time content="2026-04-28T08:47:33.046Z" datatype="xsd:dateTime" datetime="2026-04-28T08:47:33.046Z" property="schema:dateModified">4/28/2026</time></dd>
         </dl>
         <div id="authors">
           <dl id="author-name">
@@ -147,8 +147,7 @@ IDEBT():
                   <p><em>Frontier selection.</em> <code>SelectFrontier</code> retains the highest-ratio non-primary path per endpoint at the previous depth and drops anything below <code>MIN_RATIO</code>; it is purely local and triggers no peer traffic. The fetches that update <code>declarations</code>, <code>endorsements</code>, and <code>N</code> happen back in the driver between selection and expansion.</p>
                   <pre><code>SelectFrontier(d):
   expand ← ∅
-  for x in { end(p) : p ∈ paths,
-                      length(p) = d, ¬p.primary }:
+  for x in { end(p) : p ∈ paths, length(p) = d, ¬p.primary }:
     p* ← argmax { p.ratio : p ∈ paths, end(p) = x,
                             length(p) = d, ¬p.primary }
     if p*.ratio ≥ MIN_RATIO:
@@ -163,9 +162,8 @@ IDEBT():
     n_agents ← |{ a : (a, _) ∈ endorsed }|
     for (a, k) in endorsed:
       n_keys ← |{ k' : (a, k') ∈ endorsed }|
-      r     ← p.ratio × (1 - SELF_RATIO) / n_agents / n_keys
-      paths ← paths ∪ {
-        (chain(p) · (a, k), r, ¬primary) }
+      r      ← p.ratio × (1 - SELF_RATIO) / n_agents / n_keys
+      paths  ← paths ∪ { (chain(p) · (a, k), r, ¬primary) }
     p.ratio   ← p.ratio × SELF_RATIO
     p.primary ← true</code></pre>
                   <p><em>Bounded expansion.</em> Although several non-primary paths may in principle reach the same endpoint <code>(a, k)</code>, <code>SelectFrontier</code> retains only the highest-ratio one per endpoint at each depth, and only those selected primaries are fed into <code>Expand</code>. The per-depth expansion work is therefore bounded by the number of distinct frontier endpoints — proportional to the number of accounts newly touched at that depth — rather than growing with the fan-out from earlier hops. Combined with the <code>MIN_RATIO</code> pruning gate and the geometric ratio decay, this keeps the total expansion cost finite and independent of how many redundant endorsement paths exist between agents.</p>
@@ -183,17 +181,14 @@ IDEBT():
                 <div datatype="rdf:HTML" property="schema:description">
                   <p>Once IDEBT has terminated and <code>paths</code> is populated, the per-key scores and the trust-state hash are derived from it directly. All trust paths ending at a given public key <code>k</code> are summed into a single ratio in <code>[0,1]</code>; the number of pairwise-disjoint paths is recorded separately as a diagnostic and does not feed into the ratio or quota. The aggregated ratio is mapped to an integer publication quota, clamped between <code>MIN_QUOTA</code> and <code>MAX_QUOTA</code>. A key claimed by exactly one agent is marked <em>approved</em>; one claimed by two or more is marked <em>contested</em>. Finally, the full path set is canonicalised and hashed (SHA-256) into <code>trustStateHash</code>, which downstream services use to mirror a consistent view; because IDEBT is deterministic in <code>setting</code>, two registries with the same setting produce the same hash.</p>
                   <pre><code>for each pubkey k:
-  P_k          ← { p ∈ paths : pubkey(end(p)) = k }
-  ratio(k)     ← Σ { p.ratio : p ∈ P_k }
-  pathCount(k) ← |{ subset of P_k with pairwise disjoint
-                    intermediate hops }|
-  quota(k)     ← clamp(GLOBAL_QUOTA × ratio(k),
-                       MIN_QUOTA, MAX_QUOTA)
-  A_k          ← { a : ∃ p ∈ P_k, end(p) = (a, k) }
-  status(k)    ← approved  if |A_k| = 1
-                 contested otherwise
+  P_k       ← { p ∈ paths : pubkey(end(p)) = k }
+  ratio(k)  ← Σ { p.ratio : p ∈ P_k }
+  quota(k)  ← clamp(GLOBAL_QUOTA × ratio(k), MIN_QUOTA, MAX_QUOTA)
+  A_k       ← { a : ∃ p ∈ P_k, end(p) = (a, k) }
+  status(k) ← approved  if |A_k| = 1
+              contested otherwise
 
-trustStateHash ← SHA-256(canonical_serialisation(paths))</code></pre>
+trustStateId ← hash(canonicalSerialisation(paths))</code></pre>
                 </div>
               </section>
               <section id="nanopub-query" rel="schema:hasPart" resource="#nanopub-query">
