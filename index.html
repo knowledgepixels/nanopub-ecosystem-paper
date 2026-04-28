@@ -16,7 +16,7 @@
         <h1 property="schema:name">A Decentralized Infrastructure for Trust-Aware Open Knowledge Sharing by Humans and AI Agents <span class="draft-tag">[DRAFT]</span></h1>
         <dl id="document-modified">
           <dt>Modified</dt>
-          <dd><time content="2026-04-28T08:47:33.046Z" datatype="xsd:dateTime" datetime="2026-04-28T08:47:33.046Z" property="schema:dateModified">4/28/2026</time></dd>
+          <dd><time content="2026-04-28T08:53:59.826Z" datatype="xsd:dateTime" datetime="2026-04-28T08:53:59.826Z" property="schema:dateModified">4/28/2026</time></dd>
         </dl>
         <div id="authors">
           <dl id="author-name">
@@ -111,7 +111,7 @@
                 </div>
               </section>
               <section id="protocols" rel="schema:hasPart" resource="#protocols">
-                <h3 property="schema:name">Trust calculation</h3>
+                <h3 property="schema:name">Trust calculation with IDEBT</h3>
                 <div datatype="rdf:HTML" property="schema:description">
                   <p><mark class="todo">double-check the prose and the pseudo-code below against the Nanopub Registry implementation before submission.</mark></p>
                   <p><mark class="todo">double-check which parameters are actually carried by the setting nanopublication versus being hard-coded or environment-configurable in the Registry.</mark></p>
@@ -153,7 +153,6 @@ IDEBT():
     if p*.ratio ≥ MIN_RATIO:
       expand ← expand ∪ { p* }
   return expand</code></pre>
-                  <p><em>Tie-breaking.</em> The <code>argmax</code> in <code>SelectFrontier</code> is in general not unique: two non-primary paths to the same endpoint at the same depth can carry identical ratios — for instance, equally branched siblings reaching it via disjoint chains. To preserve determinism, the implementation breaks ties by an ascending SHA-256 hash of the path identifier salted with the setting, <code>sorthash = SHA-256(setting || pathId)</code>; the effective selection key is therefore <code>(p.ratio, −sorthash)</code> in lexicographic order. The same secondary key is used wherever paths are sorted by ratio, so two registries with the same <code>setting</code> produce identical path sets — and therefore identical trust-state hashes — even when ratios collide.</p>
                   <p><em>Path expansion.</em> <code>Expand</code> retains a fraction <code>SELF_RATIO</code> of each frontier path's ratio on the parent — which is then marked primary so it is not re-expanded — and distributes the remaining <code>(1 − SELF_RATIO)</code> across its endorsed children, splitting first by agent and then equally across that agent's endorsed public keys. Endorsements pointing to accounts already reached are skipped (mirroring the registry's <code>accounts_loading</code> dedup), enforcing the design invariant that every account is the endpoint of at most one primary path.</p>
                   <pre><code>Expand(expand, N):
   for p in expand:
@@ -166,9 +165,20 @@ IDEBT():
       paths  ← paths ∪ { (chain(p) · (a, k), r, ¬primary) }
     p.ratio   ← p.ratio × SELF_RATIO
     p.primary ← true</code></pre>
+                </div>
+              </section>
+              <section id="idebt-properties" rel="schema:hasPart" resource="#idebt-properties">
+                <h3 property="schema:name">IDEBT properties</h3>
+                <div datatype="rdf:HTML" property="schema:description">
                   <p><em>Bounded expansion.</em> Although several non-primary paths may in principle reach the same endpoint <code>(a, k)</code>, <code>SelectFrontier</code> retains only the highest-ratio one per endpoint at each depth, and only those selected primaries are fed into <code>Expand</code>. The per-depth expansion work is therefore bounded by the number of distinct frontier endpoints — proportional to the number of accounts newly touched at that depth — rather than growing with the fan-out from earlier hops. Combined with the <code>MIN_RATIO</code> pruning gate and the geometric ratio decay, this keeps the total expansion cost finite and independent of how many redundant endorsement paths exist between agents.</p>
                   <p><em>Bounded ratio mass.</em> <code>Expand</code> is ratio-preserving: a parent path of ratio <code>r</code> is split into a residual <code>r × SELF_RATIO</code> retained on the now-primary parent plus children of total ratio <code>r × (1 − SELF_RATIO)</code>, summing back to <code>r</code>. Since IDEBT seeds <code>paths</code> with a single root path of ratio <code>1.0</code>, the sum of ratios over all paths remains exactly <code>1.0</code> throughout the computation, and the per-key aggregated ratio used in the scoring step below is confined to <code>[0,1]</code> by construction. This conservation also bounds the size of <code>paths</code> above the pruning threshold: at most <code>1 / MIN_RATIO</code> paths can simultaneously carry a ratio of at least <code>MIN_RATIO</code>, capping the frontier size independently of <code>MAX_DEPTH</code> and of the underlying graph's branching factor.</p>
-                  <p><em>IDEBT10.</em> The deployed Nanopub Registry instantiates <code>IDEBT</code> with the constants below; we refer to this configuration as <em>IDEBT10</em> after its depth bound. The values reflect the current operational policy and can be revised as the network grows.</p>
+                  <p><em>Determinism.</em> Every step of IDEBT is a pure function of <code>setting</code>, <code>peers</code>, and the running state, with one residual ambiguity: the <code>argmax</code> in <code>SelectFrontier</code> is in general not unique, since two non-primary paths to the same endpoint at the same depth can carry identical ratios — for instance, equally branched siblings reaching it via disjoint chains. The implementation closes this gap by breaking ties on an ascending SHA-256 hash of the path identifier salted with the setting, <code>sorthash = SHA-256(setting || pathId)</code>; the effective selection key is therefore <code>(p.ratio, −sorthash)</code> in lexicographic order, and the same secondary key is used wherever paths are sorted by ratio. With this addition, two registries with the same <code>setting</code> produce identical path sets — and therefore identical trust-state hashes — even when ratios collide.</p>
+                </div>
+              </section>
+              <section id="idebt10" rel="schema:hasPart" resource="#idebt10">
+                <h3 property="schema:name">IDEBT10</h3>
+                <div datatype="rdf:HTML" property="schema:description">
+                  <p>The deployed Nanopub Registry instantiates <code>IDEBT</code> with the constants below; we refer to this configuration as <em>IDEBT10</em> after its depth bound. The values reflect the current operational policy and can be revised as the network grows.</p>
                   <pre><code>IDEBT10:
   MAX_DEPTH  ← 10
   MIN_RATIO  ← 10⁻¹⁰
