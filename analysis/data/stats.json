@@ -1,12 +1,12 @@
 {
   "snapshot": {
-    "fetched_at": "2026-05-04T11:04:15.535151+00:00",
+    "fetched_at": "2026-05-04T11:42:12.407776+00:00",
     "registry_url": "https://registry.knowledgepixels.com",
     "trust_state_hash": "4d07f8db1a1dde360566432dfa6667c79ca1be710c26a9d38b2b2569e0c7e700",
     "trust_state_counter": 25,
     "agent_count": 617,
     "account_count": 702,
-    "nanopub_count": 79673,
+    "nanopub_count": 79675,
     "registry_version": "1.9.0"
   },
   "counts": {
@@ -15,7 +15,7 @@
     "loaded": 692,
     "contested": 4,
     "skipped": 5,
-    "nanopubs": 79673,
+    "nanopubs": 79675,
     "trust_paths": 772,
     "primary_paths": 695,
     "extended_paths": 77,
@@ -96,5 +96,19 @@
       "https://fip-wizard.ds-wizard.org/wizard",
       30089
     ]
+  },
+  "timeline": {
+    "introductions_total": 955,
+    "introductions_with_ts": 954,
+    "introductions_first_per_pubkey": 683,
+    "endorsements_total": 975,
+    "endorsements_with_ts": 975,
+    "endorsements_invalidated": 24,
+    "endorsements_active": 951,
+    "intro_first": "2019-01-10T11:38:00+00:00",
+    "intro_last": "2026-04-27T07:19:42.088000+00:00",
+    "endor_first": "2022-10-03T13:12:11.472000+00:00",
+    "endor_last": "2026-04-27T11:31:40.354000+00:00",
+    "endorsing_keys": 99
   }
 }

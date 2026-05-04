@@ -13,6 +13,7 @@ any analysis is reproducible against a frozen view.
 """
 
 import json
+import re
 import urllib.request
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
@@ -20,6 +21,23 @@ from datetime import datetime, timezone
 
 BASE = "https://registry.knowledgepixels.com"
 DATA_DIR = Path(__file__).parent / "data"
+
+# SHA-256 hashes of the canonical type IRIs (see NanopubLoader.java in the
+# Nanopub Registry source: INTRO_TYPE = npx:declaredBy, ENDORSE_TYPE =
+# npx:approvesOf).
+INTRO_TYPE_HASH = "77757cabf6184c51c20b8b0fe5dc5e1365b7f628448335184ad54319a0affdfc"
+ENDORSE_TYPE_HASH = "4a9a4dc2fa939033dd444d4f630fec3450eee305d98dd9945f110b2a6bb51317"
+
+# Older nanopubs may use prov:generatedAtTime instead of dct/dcterms:created,
+# and some use auto-assigned prefixes (ns1:created, etc.) for the dcterms
+# namespace. Match any prefixed `:created` literal as well as the full IRI.
+CREATED_RE = re.compile(
+    r'(?:'
+    r'\b\w+:created'
+    r'|<http://purl\.org/dc/terms/created>'
+    r'|\bprov:generatedAtTime'
+    r')\s+"([^"]+)"\^\^xsd:dateTime'
+)
 
 ENDPOINTS = {
     "registry.json": "/.json",
@@ -30,10 +48,16 @@ ENDPOINTS = {
 }
 
 
-def fetch(path: str) -> bytes:
-    req = urllib.request.Request(BASE + path, headers={"Accept": "*/*"})
-    with urllib.request.urlopen(req, timeout=30) as resp:
-        return resp.read()
+def fetch(path: str, accept: str = "*/*", retries: int = 3) -> bytes:
+    req = urllib.request.Request(BASE + path, headers={"Accept": accept})
+    for attempt in range(retries):
+        try:
+            with urllib.request.urlopen(req, timeout=60) as resp:
+                return resp.read()
+        except (urllib.error.URLError, TimeoutError) as e:
+            if attempt == retries - 1:
+                raise
+            print(f"  retry {attempt + 1}/{retries} for {path}: {e}")
 
 
 def fetch_perkey_counts() -> dict[str, int]:
@@ -74,6 +98,69 @@ def fetch_perkey_counts() -> dict[str, int]:
     return counts
 
 
+def fetch_event_timestamps() -> dict[str, list[dict]]:
+    """Pull dct:created for every introduction and endorsement nanopub.
+
+    Two passes: first collect nanopub IDs by enumerating
+    /list/<pubkey>/<typeHash>.json for both core types across all loaded
+    pubkeys; then fetch each nanopub once via /np/<id> in TriG and regex out
+    the dct:created timestamp from the publication-info graph.
+    """
+    accounts = json.loads((DATA_DIR / "list.json").read_text())
+    pubkeys = sorted(
+        {a["pubkey"] for a in accounts if a.get("status") == "loaded" and a["pubkey"] != "$"}
+    )
+
+    def list_ids(pk: str, type_hash: str) -> list[tuple[str, str, bool]]:
+        try:
+            rows = json.loads(fetch(f"/list/{pk}/{type_hash}.json"))
+        except urllib.error.HTTPError as e:
+            if e.code == 404:
+                return []
+            raise
+        return [(pk, r["np"], bool(r.get("invalidated", False))) for r in rows]
+
+    intros: list[tuple[str, str, bool]] = []
+    endors: list[tuple[str, str, bool]] = []
+    with ThreadPoolExecutor(max_workers=10) as ex:
+        intro_futs = {ex.submit(list_ids, pk, INTRO_TYPE_HASH): pk for pk in pubkeys}
+        endor_futs = {ex.submit(list_ids, pk, ENDORSE_TYPE_HASH): pk for pk in pubkeys}
+        for f in as_completed(intro_futs):
+            intros.extend(f.result())
+        for f in as_completed(endor_futs):
+            endors.extend(f.result())
+    print(f"  collected {len(intros)} intros and {len(endors)} endorsements")
+
+    cache: dict[str, str | None] = {}
+
+    def created_for(np_id: str) -> str | None:
+        if np_id in cache:
+            return cache[np_id]
+        try:
+            body = fetch(f"/np/{np_id}", accept="application/trig").decode("utf-8", "replace")
+        except Exception as e:
+            print(f"  warning: fetch failed for {np_id}: {e}")
+            cache[np_id] = None
+            return None
+        m = CREATED_RE.search(body)
+        ts = m.group(1) if m else None
+        cache[np_id] = ts
+        return ts
+
+    out: dict[str, list[dict]] = {"introductions": [], "endorsements": []}
+    work = [("introductions", intros), ("endorsements", endors)]
+    for label, items in work:
+        with ThreadPoolExecutor(max_workers=10) as ex:
+            futs = {ex.submit(created_for, np): (pk, np, inv) for pk, np, inv in items}
+            for i, f in enumerate(as_completed(futs), 1):
+                pk, np, inv = futs[f]
+                ts = f.result()
+                out[label].append({"pubkey": pk, "np": np, "created": ts, "invalidated": inv})
+                if i % 200 == 0 or i == len(items):
+                    print(f"  {label} timestamps: {i}/{len(items)}")
+    return out
+
+
 def main() -> None:
     DATA_DIR.mkdir(parents=True, exist_ok=True)
     fetched_at = datetime.now(timezone.utc).isoformat()
@@ -85,6 +172,11 @@ def main() -> None:
     (DATA_DIR / "perkey_counts.json").write_text(json.dumps(perkey, indent=2) + "\n")
     print(f"  perkey_counts.json   {len(perkey)} pubkeys, "
           f"sum={sum(perkey.values())} nanopubs")
+    events = fetch_event_timestamps()
+    (DATA_DIR / "event_timestamps.json").write_text(json.dumps(events, indent=2) + "\n")
+    print(f"  event_timestamps.json   "
+          f"{len(events['introductions'])} intros, "
+          f"{len(events['endorsements'])} endorsements")
     meta = json.loads((DATA_DIR / "registry.json").read_text())
     snapshot = {
         "fetched_at": fetched_at,

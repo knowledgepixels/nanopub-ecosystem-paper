@@ -15,10 +15,12 @@ Outputs:
 
 import json
 from collections import Counter, defaultdict
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 import matplotlib
 matplotlib.use("Agg")
+import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
 
 ROOT = Path(__file__).parent
@@ -32,6 +34,7 @@ def load():
     accounts = json.loads((DATA / "list.json").read_text())
     agents = json.loads((DATA / "agents.json").read_text())
     perkey_counts = json.loads((DATA / "perkey_counts.json").read_text())
+    events = json.loads((DATA / "event_timestamps.json").read_text())
     # /debug/trustPaths uses ' > ' between chain hops and ' ~ ' before the
     # final hop of an "extended" path (DebugPage.getTrustPathsTxt).  Both are
     # real chain hops as far as IDEBT is concerned; the ' ~ ' marker only
@@ -46,10 +49,21 @@ def load():
         hops = line.replace(" ~ ", " > ").split(" > ")
         paths.append(hops)
         extended_flags.append(is_extended)
-    return snap, accounts, agents, perkey_counts, paths, extended_flags
+    return snap, accounts, agents, perkey_counts, events, paths, extended_flags
 
 
-def compute(snap, accounts, agents, perkey_counts, paths, extended_flags):
+def parse_ts(s: str) -> datetime | None:
+    if not s:
+        return None
+    # ISO 8601 with optional fractional seconds and Z or +HH:MM offset.
+    s = s.replace("Z", "+00:00")
+    try:
+        return datetime.fromisoformat(s).astimezone(timezone.utc)
+    except ValueError:
+        return None
+
+
+def compute(snap, accounts, agents, perkey_counts, events, paths, extended_flags):
     loaded = [a for a in accounts if a["status"] == "loaded" and a["agent"] != "$"]
     contested = [a for a in accounts if a["status"] == "contested"]
     skipped = [a for a in accounts if a["status"] == "skipped"]
@@ -107,6 +121,48 @@ def compute(snap, accounts, agents, perkey_counts, paths, extended_flags):
     def share(sorted_pairs, k):
         return sum(n for _, n in sorted_pairs[:k]) / total_nanopubs
 
+    intro_all = sorted(t for t in (parse_ts(x["created"]) for x in events["introductions"]) if t)
+    endor_all = sorted(t for t in (parse_ts(x["created"]) for x in events["endorsements"]) if t)
+
+    # Dedupe intros to the earliest timestamp per pubkey: the moment the
+    # identity binding first appeared in the network. Subsequent intros for
+    # the same pubkey are re-issuances (updated metadata, etc.) and would
+    # otherwise inflate the growth curve.
+    intro_first_per_pk: dict[str, datetime] = {}
+    for x in events["introductions"]:
+        t = parse_ts(x["created"])
+        if not t:
+            continue
+        cur = intro_first_per_pk.get(x["pubkey"])
+        if cur is None or t < cur:
+            intro_first_per_pk[x["pubkey"]] = t
+    intro_ts = sorted(intro_first_per_pk.values())
+
+    # Endorsements: drop nanopubs that have been formally invalidated (their
+    # corresponding edge no longer contributes to the trust state).  We keep
+    # re-issued endorsements because each is a distinct trust-edge event.
+    endor_ts = sorted(
+        t for x in events["endorsements"]
+        if not x.get("invalidated")
+        for t in [parse_ts(x["created"])]
+        if t
+    )
+
+    timeline = {
+        "introductions_total": len(events["introductions"]),
+        "introductions_with_ts": len(intro_all),
+        "introductions_first_per_pubkey": len(intro_ts),
+        "endorsements_total": len(events["endorsements"]),
+        "endorsements_with_ts": len(endor_all),
+        "endorsements_invalidated": sum(1 for x in events["endorsements"] if x.get("invalidated")),
+        "endorsements_active": len(endor_ts),
+        "intro_first": intro_ts[0].isoformat() if intro_ts else None,
+        "intro_last": intro_ts[-1].isoformat() if intro_ts else None,
+        "endor_first": endor_ts[0].isoformat() if endor_ts else None,
+        "endor_last": endor_ts[-1].isoformat() if endor_ts else None,
+        "endorsing_keys": len({x["pubkey"] for x in events["endorsements"]}),
+    }
+
     nanopub_concentration = {
         "total_counted": total_nanopubs,
         "n_pubkeys_with_content": len(perkey_sorted),
@@ -145,8 +201,11 @@ def compute(snap, accounts, agents, perkey_counts, paths, extended_flags):
         "ratio_above_1e_minus_3": above_1e3,
         "top_agent": {"id": top_agent["agent"], "totalRatio": top_agent["totalRatio"]},
         "nanopub_concentration": nanopub_concentration,
+        "timeline": timeline,
         "_perkey_sorted": perkey_sorted,
         "_peragent_sorted": peragent_sorted,
+        "_intro_ts": [t.isoformat() for t in intro_ts],
+        "_endor_ts": [t.isoformat() for t in endor_ts],
     }
 
 
@@ -187,6 +246,34 @@ def plot_depth_and_mass(stats):
     return out
 
 
+def plot_timeline(stats):
+    intro_ts = [datetime.fromisoformat(s) for s in stats["_intro_ts"]]
+    endor_ts = [datetime.fromisoformat(s) for s in stats["_endor_ts"]]
+
+    fig, ax = plt.subplots(figsize=(5.0, 2.8))
+
+    if intro_ts:
+        ax.plot(intro_ts, range(1, len(intro_ts) + 1), color="#3b6fb6",
+                lw=1.6, label=f"introductions ({len(intro_ts)})")
+    if endor_ts:
+        ax.plot(endor_ts, range(1, len(endor_ts) + 1), color="#b6573b",
+                lw=1.6, label=f"endorsements ({len(endor_ts)})")
+    ax.set_xlabel("creation time (UTC)")
+    ax.set_ylabel("cumulative count")
+    ax.set_title("cumulative growth of intros and endorsements", fontsize=10)
+    ax.legend(frameon=False, fontsize=8, loc="upper left")
+    ax.spines["top"].set_visible(False)
+    ax.spines["right"].set_visible(False)
+    ax.xaxis.set_major_locator(mdates.YearLocator())
+    ax.xaxis.set_major_formatter(mdates.DateFormatter("%Y"))
+
+    fig.tight_layout()
+    out = FIGS / "network-growth.svg"
+    fig.savefig(out, format="svg", bbox_inches="tight")
+    plt.close(fig)
+    return out
+
+
 def plot_publication_volume(stats):
     perkey = stats["_perkey_sorted"]
     peragent = stats["_peragent_sorted"]
@@ -220,10 +307,11 @@ def plot_publication_volume(stats):
 
 
 def main():
-    snap, accounts, agents, perkey_counts, paths, extended_flags = load()
-    stats = compute(snap, accounts, agents, perkey_counts, paths, extended_flags)
+    snap, accounts, agents, perkey_counts, events, paths, extended_flags = load()
+    stats = compute(snap, accounts, agents, perkey_counts, events, paths, extended_flags)
     plot_depth_and_mass(stats)
     plot_publication_volume(stats)
+    plot_timeline(stats)
     # Strip private (sortable list) fields before persisting stats.
     persist = {k: v for k, v in stats.items() if not k.startswith("_")}
     (DATA / "stats.json").write_text(json.dumps(persist, indent=2) + "\n")
