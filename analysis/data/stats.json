@@ -1,6 +1,6 @@
 {
   "snapshot": {
-    "fetched_at": "2026-05-04T11:42:12.407776+00:00",
+    "fetched_at": "2026-05-04T12:16:40.969769+00:00",
     "registry_url": "https://registry.knowledgepixels.com",
     "trust_state_hash": "4d07f8db1a1dde360566432dfa6667c79ca1be710c26a9d38b2b2569e0c7e700",
     "trust_state_counter": 25,
@@ -104,7 +104,8 @@
     "endorsements_total": 975,
     "endorsements_with_ts": 975,
     "endorsements_invalidated": 24,
-    "endorsements_active": 951,
+    "endorsements_genuine": 741,
+    "endorsements_active": 736,
     "intro_first": "2019-01-10T11:38:00+00:00",
     "intro_last": "2026-04-27T07:19:42.088000+00:00",
     "endor_first": "2022-10-03T13:12:11.472000+00:00",

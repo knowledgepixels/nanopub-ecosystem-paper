@@ -39,6 +39,39 @@ CREATED_RE = re.compile(
     r')\s+"([^"]+)"\^\^xsd:dateTime'
 )
 
+# Locate the assertion graph block by name (the local URI ends with /assertion).
+ASSERTION_BLOCK_RE = re.compile(r":assertion\s*\{(.*?)\}", re.DOTALL)
+# Within the assertion block, find each `approvesOf` predicate followed by
+# its first object.  The object is either an angle-bracketed full URI
+# (which can contain dots) or a prefixed name / colon-prefixed local name
+# (a non-whitespace token).  This intentionally captures only the first
+# object — endorsement nanopublications in practice carry one target each,
+# and one match is enough to classify the nanopub as a genuine endorsement.
+APPROVES_OF_RE = re.compile(
+    r'(?:\b\w+:approvesOf|<http://purl\.org/nanopub/x/approvesOf>)\s+'
+    r'(<[^>]+>|\S+)'
+)
+# Trusty URI artifact codes are 45-character base64url-ish strings starting RA
+# (RA + 43 hash chars).
+ARTIFACT_CODE_RE = re.compile(r'\bRA[A-Za-z0-9_-]{43}\b')
+
+
+def extract_approves_of(trig: str) -> list[str]:
+    """Return the list of artifact codes referenced as approvesOf objects
+    inside the nanopub's assertion graph."""
+    out: list[str] = []
+    seen: set[str] = set()
+    for m_block in ASSERTION_BLOCK_RE.finditer(trig):
+        block = m_block.group(1)
+        for m in APPROVES_OF_RE.finditer(block):
+            objects = m.group(1)
+            for ac_match in ARTIFACT_CODE_RE.finditer(objects):
+                ac = ac_match.group(0)
+                if ac not in seen:
+                    seen.add(ac)
+                    out.append(ac)
+    return out
+
 ENDPOINTS = {
     "registry.json": "/.json",
     "list.json": "/list.json",
@@ -131,31 +164,35 @@ def fetch_event_timestamps() -> dict[str, list[dict]]:
             endors.extend(f.result())
     print(f"  collected {len(intros)} intros and {len(endors)} endorsements")
 
-    cache: dict[str, str | None] = {}
+    cache: dict[str, tuple[str | None, list[str]]] = {}
 
-    def created_for(np_id: str) -> str | None:
+    def facts_for(np_id: str) -> tuple[str | None, list[str]]:
         if np_id in cache:
             return cache[np_id]
         try:
             body = fetch(f"/np/{np_id}", accept="application/trig").decode("utf-8", "replace")
         except Exception as e:
             print(f"  warning: fetch failed for {np_id}: {e}")
-            cache[np_id] = None
-            return None
+            cache[np_id] = (None, [])
+            return cache[np_id]
         m = CREATED_RE.search(body)
         ts = m.group(1) if m else None
-        cache[np_id] = ts
-        return ts
+        approves = extract_approves_of(body)
+        cache[np_id] = (ts, approves)
+        return cache[np_id]
 
     out: dict[str, list[dict]] = {"introductions": [], "endorsements": []}
     work = [("introductions", intros), ("endorsements", endors)]
     for label, items in work:
         with ThreadPoolExecutor(max_workers=10) as ex:
-            futs = {ex.submit(created_for, np): (pk, np, inv) for pk, np, inv in items}
+            futs = {ex.submit(facts_for, np): (pk, np, inv) for pk, np, inv in items}
             for i, f in enumerate(as_completed(futs), 1):
                 pk, np, inv = futs[f]
-                ts = f.result()
-                out[label].append({"pubkey": pk, "np": np, "created": ts, "invalidated": inv})
+                ts, approves = f.result()
+                rec = {"pubkey": pk, "np": np, "created": ts, "invalidated": inv}
+                if label == "endorsements":
+                    rec["approves"] = approves
+                out[label].append(rec)
                 if i % 200 == 0 or i == len(items):
                     print(f"  {label} timestamps: {i}/{len(items)}")
     return out

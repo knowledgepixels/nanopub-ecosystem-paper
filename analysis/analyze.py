@@ -138,14 +138,25 @@ def compute(snap, accounts, agents, perkey_counts, events, paths, extended_flags
             intro_first_per_pk[x["pubkey"]] = t
     intro_ts = sorted(intro_first_per_pk.values())
 
-    # Endorsements: drop nanopubs that have been formally invalidated (their
-    # corresponding edge no longer contributes to the trust state).  We keep
-    # re-issued endorsements because each is a distinct trust-edge event.
+    # The registry's per-(pubkey, type) endorsement list contains every
+    # nanopub that the loader has tagged with the npx:approvesOf type, but a
+    # known gap in the loader (RegistryDB.loadNanopubVerified, "TODO Check if
+    # nanopub really has the type?") can let unrelated nanopubs slip in for
+    # bootstrap-only pubkeys.  To restrict to genuine trust-edge endorsements
+    # we (a) drop nanopubs explicitly invalidated, and (b) require the
+    # assertion to contain at least one npx:approvesOf triple whose object is
+    # one of the known introduction nanopubs.
+    intro_artifact_codes = {x["np"] for x in events["introductions"]}
     endor_ts = sorted(
         t for x in events["endorsements"]
         if not x.get("invalidated")
+        and any(ac in intro_artifact_codes for ac in x.get("approves", []))
         for t in [parse_ts(x["created"])]
         if t
+    )
+    endor_genuine = sum(
+        1 for x in events["endorsements"]
+        if any(ac in intro_artifact_codes for ac in x.get("approves", []))
     )
 
     timeline = {
@@ -155,6 +166,7 @@ def compute(snap, accounts, agents, perkey_counts, events, paths, extended_flags
         "endorsements_total": len(events["endorsements"]),
         "endorsements_with_ts": len(endor_all),
         "endorsements_invalidated": sum(1 for x in events["endorsements"] if x.get("invalidated")),
+        "endorsements_genuine": endor_genuine,
         "endorsements_active": len(endor_ts),
         "intro_first": intro_ts[0].isoformat() if intro_ts else None,
         "intro_last": intro_ts[-1].isoformat() if intro_ts else None,
