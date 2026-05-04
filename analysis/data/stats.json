@@ -1,0 +1,100 @@
+{
+  "snapshot": {
+    "fetched_at": "2026-05-04T11:04:15.535151+00:00",
+    "registry_url": "https://registry.knowledgepixels.com",
+    "trust_state_hash": "4d07f8db1a1dde360566432dfa6667c79ca1be710c26a9d38b2b2569e0c7e700",
+    "trust_state_counter": 25,
+    "agent_count": 617,
+    "account_count": 702,
+    "nanopub_count": 79673,
+    "registry_version": "1.9.0"
+  },
+  "counts": {
+    "agents": 616,
+    "accounts": 701,
+    "loaded": 692,
+    "contested": 4,
+    "skipped": 5,
+    "nanopubs": 79673,
+    "trust_paths": 772,
+    "primary_paths": 695,
+    "extended_paths": 77,
+    "trust_edges": 772
+  },
+  "accounts_per_agent": {
+    "1": 549,
+    "2": 59,
+    "3": 6,
+    "4": 1,
+    "6": 1
+  },
+  "depth_counts": {
+    "0": 1,
+    "1": 14,
+    "2": 505,
+    "3": 161,
+    "4": 88,
+    "5": 4
+  },
+  "depth_mass": {
+    "0": 0.1,
+    "1": 0.09037970046448823,
+    "2": 0.013736094989945479,
+    "3": 9.600019074367325e-05,
+    "4": 2.6419096152977366e-06,
+    "5": 1.3598318457857934e-06
+  },
+  "fanout_dist": {
+    "1": 28,
+    "2": 3,
+    "3": 3,
+    "4": 1,
+    "7": 1,
+    "10": 1,
+    "14": 2,
+    "25": 1,
+    "28": 1,
+    "41": 1,
+    "84": 1,
+    "111": 1,
+    "115": 1,
+    "276": 1
+  },
+  "pathcount_dist": {
+    "1": 656,
+    "2": 31,
+    "3": 5
+  },
+  "quota_dist_top": {
+    "1000": 179,
+    "2484": 6,
+    "3726": 22,
+    "7453": 214,
+    "8936": 5,
+    "16291": 106,
+    "17872": 88,
+    "100000": 19
+  },
+  "quota_distinct": 43,
+  "ratio_total_loaded": 0.10417576185161001,
+  "ratio_above_1e_minus_4": 19,
+  "ratio_above_1e_minus_3": 17,
+  "top_agent": {
+    "id": "https://orcid.org/0000-0002-1267-0234",
+    "totalRatio": 0.00841271873246835
+  },
+  "nanopub_concentration": {
+    "total_counted": 73603,
+    "n_pubkeys_with_content": 690,
+    "n_agents_with_content": 611,
+    "top1_pubkey_share": 0.40880127168729535,
+    "top10_pubkey_share": 0.8228604812303846,
+    "top1_agent_share": 0.40880127168729535,
+    "top10_agent_share": 0.8740268739045963,
+    "top1_pubkey_count": 30089,
+    "top1_agent": [
+      "https://fip-wizard.ds-wizard.org/wizard",
+      30089
+    ]
+  }
+}

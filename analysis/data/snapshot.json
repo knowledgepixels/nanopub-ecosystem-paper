@@ -1,0 +1,10 @@
+{
+  "fetched_at": "2026-05-04T11:04:15.535151+00:00",
+  "registry_url": "https://registry.knowledgepixels.com",
+  "trust_state_hash": "4d07f8db1a1dde360566432dfa6667c79ca1be710c26a9d38b2b2569e0c7e700",
+  "trust_state_counter": 25,
+  "agent_count": 617,
+  "account_count": 702,
+  "nanopub_count": 79673,
+  "registry_version": "1.9.0"
+}
