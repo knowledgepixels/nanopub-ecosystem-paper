@@ -16,7 +16,7 @@
         <h1 property="schema:name">A Decentralized Infrastructure for Trust-Aware Open Knowledge Sharing by Humans and AI Agents <span class="draft-tag">[DRAFT]</span></h1>
         <dl id="document-modified">
           <dt>Modified</dt>
-          <dd><time content="2026-04-28T08:53:59.826Z" datatype="xsd:dateTime" datetime="2026-04-28T08:53:59.826Z" property="schema:dateModified">4/28/2026</time></dd>
+          <dd><time content="2026-05-04T09:24:58.859Z" datatype="xsd:dateTime" datetime="2026-05-04T09:24:58.859Z" property="schema:dateModified">5/4/2026</time></dd>
         </dl>
         <div id="authors">
           <dl id="author-name">
@@ -88,11 +88,11 @@
                   <p>At a high level, the ecosystem is organised into four cooperating layers. <em>Trusty URIs</em> provide content-derived, immutable identifiers for every nanopublication. A federated set of <em>Nanopub Registries</em> ingests, authenticates, governs and replicates these nanopublications; the subsequent subsections describe their internal structure in detail. On top of the Registries, a set of <em>Nanopub Query</em> services indexes the stored content and exposes it through SPARQL and REST endpoints. Finally, user-facing <em>client applications</em> — foremost among them Nanodash — create, sign, submit, and browse nanopublications by interacting with the Registry and Query APIs. Nanopublications therefore flow upward from clients to Registries at publication time, and downward from Registries through Query into client-facing views at consumption time.</p>
                   <figure id="fig-nanopub-architecture">
                     <p><img alt="High-level architecture of the nanopublication ecosystem" src="media/images/nanopub-architecture.svg" /></p>
-                    <figcaption>High-level architecture of the nanopublication ecosystem. <mark class="todo">update/adjust this figure for the paper.</mark></figcaption>
+                    <figcaption>High-level architecture of the nanopublication ecosystem.</figcaption>
                   </figure>
                 </div>
               </section>
-              <section id="keys-signers-types" rel="schema:hasPart" resource="#keys-signers-types">
+              <section id="public-keys-signers-and-types" rel="schema:hasPart" resource="#public-keys-signers-and-types">
                 <h3 property="schema:name">Public keys, signers, and types</h3>
                 <div datatype="rdf:HTML" property="schema:description">
                   <p><mark class="todo">double-check terminology, account lifecycle, coverage semantics, and joint storage layout against the Nanopub Registry implementation before submission.</mark></p>
@@ -101,7 +101,7 @@
                   <p>Each nanopublication further declares a set of types (IRIs) that place it in a functional or domain class (assertion, introduction, endorsement, template, and so on). A Registry instance has a configurable <em>coverage</em> — a set of types, with introductions, endorsements, and the setting nanopublication always included — that fixes what the instance stores; nanopublications of uncovered types are rejected. Storage is organised first by signer and public key (reflecting <em>who</em> published) and, within each key, by type (reflecting <em>what</em>).</p>
                 </div>
               </section>
-              <section id="ingest-replication-retractions" rel="schema:hasPart" resource="#ingest-replication-retractions">
+              <section id="ingest-replication-and-retractions" rel="schema:hasPart" resource="#ingest-replication-and-retractions">
                 <h3 property="schema:name">Ingest, replication, and retractions</h3>
                 <div datatype="rdf:HTML" property="schema:description">
                   <p><mark class="todo">double-check the ingest pipeline, the list-based replication protocol, the HTTP API surface (endpoint names and semantics), and the retraction/invalidation behaviour against the Nanopub Registry implementation before submission.</mark></p>
@@ -110,7 +110,7 @@
                   <p>Retractions are themselves nanopublications that reference, by Trusty URI, the nanopublications they retract. The Registry does not delete the target — every nanopublication remains resolvable by its hash — but it sets an <em>invalidated</em> flag on the corresponding list entry. When the retracted nanopublication is an introduction or endorsement, the invalidation additionally propagates into the next trust-state computation, so that stale keys and edges are removed from the trust graph as part of its normal re-derivation.</p>
                 </div>
               </section>
-              <section id="protocols" rel="schema:hasPart" resource="#protocols">
+              <section id="trust-calculation-with-idebt" rel="schema:hasPart" resource="#trust-calculation-with-idebt">
                 <h3 property="schema:name">Trust calculation with IDEBT</h3>
                 <div datatype="rdf:HTML" property="schema:description">
                   <p><mark class="todo">double-check the prose and the pseudo-code below against the Nanopub Registry implementation before submission.</mark></p>
@@ -236,7 +236,7 @@ trustStateId ← hash(canonicalSerialisation(paths))</code></pre>
               <p><mark class="todo">interpret results, limitations, and implications for the Semantic Web community.</mark></p>
             </div>
           </section>
-          <section id="conclusion" rel="schema:hasPart" resource="#conclusion">
+          <section id="conclusion-and-future-work" rel="schema:hasPart" resource="#conclusion-and-future-work">
             <h2 property="schema:name">Conclusion and Future Work</h2>
             <div datatype="rdf:HTML" property="schema:description">
               <p><mark class="todo">summarize contributions and outline planned extensions.</mark></p>
@@ -248,13 +248,13 @@ trustStateId ← hash(canonicalSerialisation(paths))</code></pre>
               </section>
             </div>
           </section>
-          <section id="supplementary-material-statement" rel="schema:hasPart" resource="#supplementary-material-statement">
+          <section id="supplemental-material-statement" rel="schema:hasPart" resource="#supplemental-material-statement">
             <h2 property="schema:name">Supplemental Material Statement</h2>
             <div datatype="rdf:HTML" property="schema:description">
               <p><mark class="todo">list code, datasets, and resources with anonymous links (e.g., Zenodo, Anonymous GitHub) for review. Replace with canonical DOIs in the camera-ready.</mark></p>
             </div>
           </section>
-          <section id="generative-ai-statement" rel="schema:hasPart" resource="#generative-ai-statement">
+          <section id="use-of-generative-ai" rel="schema:hasPart" resource="#use-of-generative-ai">
             <h2 property="schema:name">Use of Generative AI</h2>
             <div datatype="rdf:HTML" property="schema:description">
               <p><mark class="todo">disclose any use of generative AI tools in accordance with the ISWC 2026 policy, or state that none was used.</mark></p>
