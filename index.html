@@ -16,7 +16,7 @@
         <h1 property="schema:name">A Decentralized Infrastructure for Trust-Aware Open Knowledge Sharing by Humans and AI Agents <span class="draft-tag">[DRAFT]</span></h1>
         <dl id="document-modified">
           <dt>Modified</dt>
-          <dd><time content="2026-05-04T09:24:58.859Z" datatype="xsd:dateTime" datetime="2026-05-04T09:24:58.859Z" property="schema:dateModified">5/4/2026</time></dd>
+          <dd><time content="2026-05-04T13:21:45.493Z" datatype="xsd:dateTime" datetime="2026-05-04T13:21:45.493Z" property="schema:dateModified">5/4/2026</time></dd>
         </dl>
         <div id="authors">
           <dl id="author-name">
@@ -138,11 +138,9 @@
 
 IDEBT():
   paths        ← { (chain = [$], ratio = 1.0, ¬primary) }
-  declarations ← { peers.fetch(u) :
-                   u ∈ peers.fetch(setting.agentIntroCollection) }
+  declarations ← { peers.fetch(u) : u ∈ peers.fetch(setting.agentIntroCollection) }
   endorsements ← ∅
-  N            ← { ($, (a, k)) : (a, k) declared
-                                 by some D ∈ declarations }
+  N            ← { ($, (a, k)) : (a, k) declared by some D ∈ declarations }
 
   for d = 1 to MAX_DEPTH:
     expand ← SelectFrontier(d - 1)
@@ -160,16 +158,14 @@ IDEBT():
                   <pre><code>SelectFrontier(d):
   expand ← ∅
   for x in { end(p) : p ∈ paths, length(p) = d, ¬p.primary }:
-    p* ← argmax { p.ratio : p ∈ paths, end(p) = x,
-                            length(p) = d, ¬p.primary }
+    p* ← argmax { p.ratio : p ∈ paths, end(p) = x, length(p) = d, ¬p.primary }
     if p*.ratio ≥ MIN_RATIO:
       expand ← expand ∪ { p* }
   return expand</code></pre>
                   <p><em>Path expansion.</em> <code>Expand</code> retains a fraction <code>SELF_RATIO</code> of each frontier path's ratio on the parent — which is then marked primary so it is not re-expanded — and distributes the remaining <code>(1 − SELF_RATIO)</code> across its endorsed children, splitting first by agent and then equally across that agent's endorsed public keys. Endorsements pointing to accounts already reached are skipped (mirroring the registry's <code>accounts_loading</code> dedup), enforcing the design invariant that every account is the endpoint of at most one primary path.</p>
                   <pre><code>Expand(expand, N):
   for p in expand:
-    endorsed ← { (a, k) : (end(p), (a, k)) ∈ N,
-                          ¬∃ p' ∈ paths : end(p') = (a, k) }
+    endorsed ← { (a, k) : (end(p), (a, k)) ∈ N, ¬∃ p' ∈ paths : end(p') = (a, k) }
     n_agents ← |{ a : (a, _) ∈ endorsed }|
     for (a, k) in endorsed:
       n_keys ← |{ k' : (a, k') ∈ endorsed }|
@@ -240,37 +236,82 @@ trustStateId ← hash(canonicalSerialisation(paths))</code></pre>
             <h2 property="schema:name">Evaluation</h2>
             <div datatype="rdf:HTML" property="schema:description">
               <p><mark class="todo">describe experiments, datasets, metrics, and threats to validity (multi-node test deployment, synthetic publish/query workload, simulated network disruptions).</mark></p>
-              <section id="trust-network-snapshot" rel="schema:hasPart" resource="#trust-network-snapshot">
+              <section id="descriptive-analysis-of-network-snapshot" rel="schema:hasPart" resource="#descriptive-analysis-of-network-snapshot">
                 <h3 property="schema:name">Descriptive analysis of network snapshot</h3>
                 <div datatype="rdf:HTML" property="schema:description">
-                  <p><mark class="todo">Draft — refresh snapshot just before submission and re-run <code>analysis/fetch_snapshot.py</code> + <code>analysis/analyze.py</code>.</mark> To complement the controlled experiments above, we report a descriptive snapshot of the deployed trust network as observed at the public registry instance <code>registry.knowledgepixels.com</code> on 2026-05-04. The snapshot is fully identified by the trust-state hash <code>4d07f8db…</code> and is reproducible from the data files and scripts under <code>analysis/</code> in the paper repository. All numbers below are derived from the public endpoints <code>/list.json</code>, <code>/agents.json</code>, and <code>/debug/trustPaths</code>.</p>
+                  <p><mark class="todo">Draft — refresh snapshot just before submission and re-run </mark><code>analysis/fetch_snapshot.py</code><mark class="todo"> + </mark><code>analysis/analyze.py</code><mark class="todo">.</mark> To complement the controlled experiments above, we report a descriptive snapshot of the deployed trust network as observed at the public registry instance <code>registry.knowledgepixels.com</code> on 2026-05-04. The snapshot is fully identified by the trust-state hash <code>4d07f8db…</code> and is reproducible from the data files and scripts under <code>analysis/</code> in the paper repository. All numbers below are derived from the public endpoints <code>/list.json</code>, <code>/agents.json</code>, and <code>/debug/trustPaths</code>.</p>
                   <table id="tab-snapshot-counts">
                     <caption>Identity and content counts in the snapshot.</caption>
                     <thead>
-                      <tr><th>Quantity</th><th>Value</th></tr>
+                      <tr>
+                        <th>Quantity</th>
+                        <th>Value</th>
+                      </tr>
                     </thead>
                     <tbody>
-                      <tr><td>Distinct signers (agents)</td><td>616</td></tr>
-                      <tr><td>Signer-key accounts (loaded / contested / skipped)</td><td>692 / 4 / 5</td></tr>
-                      <tr><td>Accounts per agent (max; modal)</td><td>6 (max); 1 (89% of agents)</td></tr>
-                      <tr><td>Stored nanopublications</td><td>79,672</td></tr>
-                      <tr><td>Registry version / trust-state counter</td><td>1.9.0 / 25</td></tr>
+                      <tr>
+                        <td>Distinct signers (agents)</td>
+                        <td>616</td>
+                      </tr>
+                      <tr>
+                        <td>Signer-key accounts (loaded / contested / skipped)</td>
+                        <td>692 / 4 / 5</td>
+                      </tr>
+                      <tr>
+                        <td>Accounts per agent (max; modal)</td>
+                        <td>6 (max); 1 (89% of agents)</td>
+                      </tr>
+                      <tr>
+                        <td>Stored nanopublications</td>
+                        <td>79,672</td>
+                      </tr>
+                      <tr>
+                        <td>Registry version / trust-state counter</td>
+                        <td>1.9.0 / 25</td>
+                      </tr>
                     </tbody>
                   </table>
                   <table id="tab-trust-graph">
                     <caption>Trust-graph metrics derived from the full path dump.</caption>
                     <thead>
-                      <tr><th>Quantity</th><th>Value</th></tr>
+                      <tr>
+                        <th>Quantity</th>
+                        <th>Value</th>
+                      </tr>
                     </thead>
                     <tbody>
-                      <tr><td>Trust paths (excluding root): primary / extended</td><td>772 (695 / 77)</td></tr>
-                      <tr><td>Distinct endorsement edges</td><td>772</td></tr>
-                      <tr><td>Effective depth range</td><td>1–5</td></tr>
-                      <tr><td>Accounts with a single trust path</td><td>656 of 692 (94.8%)</td></tr>
-                      <tr><td>Total ratio mass over loaded accounts</td><td>0.104 (vs. root self-ratio 0.10; total 0.20 ≪ 1.0)</td></tr>
-                      <tr><td>Accounts carrying ratio ≥ 10<sup>−4</sup> / ≥ 10<sup>−3</sup></td><td>19 / 17</td></tr>
-                      <tr><td>Top agent's aggregated ratio</td><td>0.0084</td></tr>
-                      <tr><td>Distinct quota tiers (accounts at floor 1000)</td><td>43 (179 accounts at floor)</td></tr>
+                      <tr>
+                        <td>Trust paths (excluding root): primary / extended</td>
+                        <td>772 (695 / 77)</td>
+                      </tr>
+                      <tr>
+                        <td>Distinct endorsement edges</td>
+                        <td>772</td>
+                      </tr>
+                      <tr>
+                        <td>Effective depth range</td>
+                        <td>1–5</td>
+                      </tr>
+                      <tr>
+                        <td>Accounts with a single trust path</td>
+                        <td>656 of 692 (94.8%)</td>
+                      </tr>
+                      <tr>
+                        <td>Total ratio mass over loaded accounts</td>
+                        <td>0.104 (vs. root self-ratio 0.10; total 0.20 ≪ 1.0)</td>
+                      </tr>
+                      <tr>
+                        <td>Accounts carrying ratio ≥ 10<sup>−4</sup> / ≥ 10<sup>−3</sup></td>
+                        <td>19 / 17</td>
+                      </tr>
+                      <tr>
+                        <td>Top agent's aggregated ratio</td>
+                        <td>0.0084</td>
+                      </tr>
+                      <tr>
+                        <td>Distinct quota tiers (accounts at floor 1000)</td>
+                        <td>43 (179 accounts at floor)</td>
+                      </tr>
                     </tbody>
                   </table>
                   <figure id="fig-depth-mass">
