@@ -16,7 +16,7 @@
         <h1 property="schema:name">A Decentralized Infrastructure for Trust-Aware Open Knowledge Sharing by Humans and AI Agents <span class="draft-tag">[DRAFT]</span></h1>
         <dl id="document-modified">
           <dt>Modified</dt>
-          <dd><time content="2026-05-04T13:21:45.493Z" datatype="xsd:dateTime" datetime="2026-05-04T13:21:45.493Z" property="schema:dateModified">5/4/2026</time></dd>
+          <dd><time content="2026-05-05T07:11:50.478Z" datatype="xsd:dateTime" datetime="2026-05-05T07:11:50.478Z" property="schema:dateModified">5/5/2026</time></dd>
         </dl>
         <div id="authors">
           <dl id="author-name">
@@ -121,13 +121,13 @@
 @prefix orcid: &lt;https://orcid.org/&gt; .
 @prefix prov:  &lt;http://www.w3.org/ns/prov#&gt; .
 
-# Common Head graph (identical across types):
+# Common head graph (identical across types):
 sub:Head { this: a np:Nanopublication ;
            np:hasAssertion       sub:assertion ;
            np:hasProvenance      sub:provenance ;
            np:hasPublicationInfo sub:pubinfo . }
 
-# (a) Setting assertion — declares the trust root and propagation policy
+# (a) Setting assertion: declares the trust root and propagation policy
 sub:assertion {
   sub:setting a npx:NanopubSetting ;
     npx:hasAgents              &lt;…initialAgentsIndex&gt; ;
@@ -138,25 +138,25 @@ sub:assertion {
     npx:hasTrustRangeAlgorithm npx:IDEBT10 ;
     npx:hasUpdateStrategy      npx:UpdatesByCreator . }
 
-# (b) Introduction assertion — binds an agent (ORCID) to a public key
+# (b) Introduction assertion: binds an agent (e.g. via ORCID) to a public key
 sub:assertion {
   sub:keyDecl npx:declaredBy   orcid:0000-0002-7487-4881 ;
               npx:hasAlgorithm "RSA" ;
               npx:hasPublicKey "MIGfMA0GCSqG…wIDAQAB" . }
 
-# (c) Endorsement assertion — approves another nanopublication (typically an introduction)
+# (c) Endorsement assertion: approves an introduction nanopublication
 sub:assertion {
   orcid:0000-0002-1267-0234
     npx:approvesOf &lt;https://w3id.org/np/RA2rnE4Gi…&gt; . }
 
-# (d) Index assertion — here: the initialAgentsIndex referenced by the setting above
+# (d) Index assertion: here the initialAgentsIndex of the setting above
 sub:assertion {
   sub:initialAgentsIndex a npx:NanopubIndex ;
     npx:includesElement &lt;https://w3id.org/np/RA2rnE4Gi…&gt; ,
                         &lt;https://w3id.org/np/RAxKSHJSR…&gt; ,
                         &lt;https://w3id.org/np/RABm7U1wy…&gt; . }
 
-# Common provenance and pubinfo graphs (identical across types):
+# Common provenance and publication info graphs (identical across types):
 sub:provenance { sub:assertion prov:wasAttributedTo orcid:0000-0002-1267-0234 . }
 sub:pubinfo    { this: dct:created "2025-12-02T12:17:03Z"^^xsd:dateTime .
                  sub:sig npx:hasPublicKey "MIGf…AB" ;
