@@ -110,7 +110,7 @@
                   <p>Three orthogonal attributes determine how the Registry stores and governs a nanopublication: the <em>public key</em> used to sign it, the <em>signer</em> that controls that key, and the <em>types</em> the nanopublication declares about itself. We use <em>signer</em> as the primary term — the nanopub data model and the Registry code call this entity an <em>agent</em> — to stress the cryptographic role and to distinguish it from semantic creators or contributors a nanopublication may additionally declare.</p>
                   <p>Every accepted nanopublication carries a signature made with an RSA public key, which the Registry identifies by its SHA-256 hash and treats as the primary account identifier. Signers are identified by persistent URIs (typically ORCIDs) and are bound to their keys through <em>introduction nanopublications</em>. This binding is many-to-many and auditable: a key whose only claimant is a single signer yields an <em>approved</em> account, whereas two or more signers claiming the same key yields <em>contested</em> accounts that are held back from general availability until the ambiguity is resolved.</p>
                   <p>Each nanopublication further declares a set of types (IRIs) that place it in a functional or domain class (assertion, introduction, endorsement, template, and so on). A Registry instance has a configurable <em>coverage</em> — a set of types, with introductions, endorsements, and the setting nanopublication always included — that fixes what the instance stores; nanopublications of uncovered types are rejected. Storage is organised first by signer and public key (reflecting <em>who</em> published) and, within each key, by type (reflecting <em>what</em>).</p>
-                  <p>Three nanopublication types drive the trust layer specifically: a <em>setting</em> nanopublication parameterises a Registry, <em>introduction</em> nanopublications bind agent identifiers to public keys, and <em>endorsement</em> nanopublications add trust edges between such bindings. <a href="#fig-nanopub-examples">Figure 2</a> shows the same simplified TriG skeleton for all three. Every nanopublication shares the four-graph wrapper at the top (head, provenance, pubinfo); only the assertion graph differs by type.</p>
+                  <p>Three nanopublication types drive the trust layer specifically: a <em>setting</em> nanopublication parameterises a Registry, <em>introduction</em> nanopublications bind agent identifiers to public keys, and <em>endorsement</em> nanopublications add trust edges between such bindings. A fourth type, <em>indexes</em>, groups nanopublications into named collections referenced from elsewhere — for instance, the seed agents listed by a setting are themselves grouped through such an index. <a href="#fig-nanopub-examples">Figure 2</a> shows simplified TriG skeletons for all four. Every nanopublication shares the same four-graph wrapper (head, provenance, pubinfo); only the assertion graph differs by type.</p>
                   <figure id="fig-nanopub-examples">
                     <pre><code>@prefix this:  &lt;…this nanopub&gt; .
 @prefix sub:   &lt;…this nanopub/&gt; .
@@ -130,11 +130,11 @@ sub:Head { this: a np:Nanopublication ;
 # (a) Setting assertion — declares the trust root and propagation policy
 sub:assertion {
   sub:setting a npx:NanopubSetting ;
-    npx:hasAgents              &lt;…initialAgents&gt; ;
+    npx:hasAgents              &lt;…initialAgentsIndex&gt; ;
     npx:hasBootstrapService    &lt;https://registry.knowledgepixels.com/&gt; ,
                                &lt;https://registry.nanodash.net/&gt; ,
                                &lt;https://registry.petapico.org/&gt; ;
-    npx:hasServices            &lt;…services&gt; ;
+    npx:hasServices            &lt;…servicesIndex&gt; ;
     npx:hasTrustRangeAlgorithm npx:IDEBT10 ;
     npx:hasUpdateStrategy      npx:UpdatesByCreator . }
 
@@ -149,13 +149,20 @@ sub:assertion {
   orcid:0000-0002-1267-0234
     npx:approvesOf &lt;https://w3id.org/np/RA2rnE4Gi…&gt; . }
 
+# (d) Index assertion — here: the initialAgentsIndex referenced by the setting above
+sub:assertion {
+  sub:initialAgentsIndex a npx:NanopubIndex ;
+    npx:includesElement &lt;https://w3id.org/np/RA2rnE4Gi…&gt; ,
+                        &lt;https://w3id.org/np/RAxKSHJSR…&gt; ,
+                        &lt;https://w3id.org/np/RABm7U1wy…&gt; . }
+
 # Common provenance and pubinfo graphs (identical across types):
 sub:provenance { sub:assertion prov:wasAttributedTo orcid:0000-0002-1267-0234 . }
 sub:pubinfo    { this: dct:created "2025-12-02T12:17:03Z"^^xsd:dateTime .
                  sub:sig npx:hasPublicKey "MIGf…AB" ;
                          npx:hasSignature "VFt…EQI=" ;
                          npx:signedBy     orcid:0000-0002-1267-0234 . }</code></pre>
-                    <figcaption>Simplified TriG skeletons for the three nanopublication types that drive the trust layer, with common prefixes and the shared four-graph wrapper shown once at the top. (a) The <em>setting</em> identifies the seed agents and trust-propagation policy of a Registry. (b) An <em>introduction</em> binds an agent identifier (an ORCID) to an RSA public key via a key-declaration resource. (c) An <em>endorsement</em> states that one signer <code>npx:approvesOf</code> another nanopublication, thereby adding a trust edge from the endorsing key to the endorsed binding.</figcaption>
+                    <figcaption>Simplified TriG skeletons for the four nanopublication types that drive the trust layer, with common prefixes, the shared Head graph, and the shared provenance and pubinfo graphs shown once. (a) The <em>setting</em> identifies the seed agents and trust-propagation policy of a Registry. (b) An <em>introduction</em> binds an agent identifier (an ORCID) to an RSA public key via a key-declaration resource. (c) An <em>endorsement</em> states that one signer <code>npx:approvesOf</code> another nanopublication, thereby adding a trust edge from the endorsing key to the endorsed binding. (d) An <em>index</em> groups other nanopublications via <code>npx:includesElement</code>; the example shows the <code>initialAgentsIndex</code> referenced from the setting in (a), which lists the introduction nanopublications of the seed agents.</figcaption>
                   </figure>
                 </div>
               </section>
