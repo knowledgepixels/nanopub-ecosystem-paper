@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en" xml:lang="en" xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>A Decentralized Infrastructure for Trust-Aware Open Knowledge Sharing — Slides</title>
+    <meta content="width=device-width, initial-scale=1" name="viewport" />
+    <link href="https://dokie.li/media/css/basic.css" media="all" rel="stylesheet" title="Basic" />
+    <link href="https://dokie.li/media/css/dokieli.css" media="all" rel="stylesheet" />
+    <script src="https://dokie.li/scripts/dokieli.js"></script>
+    <style>
+      /* Constrain the description column so images can fit against a known box. */
+      .shower .slide > div[property="schema:description"] {
+        display: flex; flex-direction: column;
+        min-height: 0; max-height: 440px; overflow: hidden;
+      }
+      .shower .slide img.fig, .shower .slide img.bigfig {
+        flex: 1 1 auto; min-height: 0; min-width: 0;
+        max-width: 100%; max-height: 100%;
+        width: auto; height: auto; object-fit: contain;
+        display: block; margin: 0 auto;
+      }
+      .shower .slide pre { font-size: 14px; line-height: 1.25; }
+      .shower .slide pre.small { font-size: 12px; }
+      .shower .slide pre.large { font-size: 20px; line-height: 1.3; }
+      /* Cancel dokieli's full-bleed table styling that pushes the left edge into the slide padding. */
+      .shower .slide table { margin-left: 0 !important; width: auto !important; }
+      .shower .slide table td:first-child, .shower .slide table th:first-child { padding-left: 0.6em !important; }
+      .shower .slide table td:last-child, .shower .slide table th:last-child { padding-right: 0.6em !important; }
+      .shower .slide ul.brands { list-style: none; padding: 0; display: flex; gap: 1em; flex-wrap: wrap; justify-content: center; align-items: center; }
+      .shower .slide ul.brands li { font-weight: 600; margin: 0; }
+      img.np-icon { height: 1em; vertical-align: -0.15em; margin-right: 0.25em; }
+      img.np-icon-lg { height: 1em; vertical-align: -0.15em; margin-right: 0.3em; }
+    </style>
+  </head>
+  <body about="" class="shower list" prefix="rdf: http://www.w3.org/1999/02/22-rdf-syntax-ns# rdfs: http://www.w3.org/2000/01/rdf-schema# owl: http://www.w3.org/2002/07/owl# xsd: http://www.w3.org/2001/XMLSchema# dcterms: http://purl.org/dc/terms/ foaf: http://xmlns.com/foaf/0.1/ schema: http://schema.org/ prov: http://www.w3.org/ns/prov# bibo: http://purl.org/ontology/bibo/ cito: http://purl.org/spar/cito/" typeof="schema:CreativeWork prov:Entity">
+    <main>
+      <article about="" typeof="schema:CreativeWork">
+
+        <header class="caption">
+          <h1 property="schema:name">A Decentralized Infrastructure for Trust-Aware Open Knowledge Sharing by Humans and AI Agents</h1>
+          <p>
+            <a about="" href="http://purl.org/ontology/bibo/Slideshow" rel="rdf:type">Slideshow</a>
+            by
+            <span about="" rel="schema:creator schema:author"><a about="#tk" href="https://orcid.org/0000-0002-1267-0234" property="schema:name" typeof="schema:Person">Tobias Kuhn</a></span>,
+            <span about="" rel="schema:author"><a about="#vb" href="https://orcid.org/0009-0009-0118-9195" property="schema:name" typeof="schema:Person">Virginia Balseiro</a></span>,
+            <span about="" rel="schema:author"><a about="#ac" href="https://orcid.org/0000-0001-8492-0354" property="schema:name" typeof="schema:Person">Ashley Caselli</a></span>,
+            <span about="" rel="schema:author"><a about="#zp" href="https://orcid.org/0009-0008-3635-347X" property="schema:name" typeof="schema:Person">Ziroli Plutschow</a></span>,
+            <span about="" rel="schema:author"><a about="#ps" href="https://orcid.org/0000-0002-2543-9461" property="schema:name" typeof="schema:Person">Piotr Sowiński</a></span>,
+            <span about="" rel="schema:author"><a about="#ad" href="https://orcid.org/0000-0002-3080-0303" property="schema:name" typeof="schema:Person">Anastasiya Danilenka</a></span>.
+          </p>
+          <p>Companion deck for the <a href="../">paper draft</a>. Press <kbd>F</kbd> for full-screen slide mode, <kbd>Esc</kbd> to return to outline.</p>
+        </header>
+
+        <section class="slide" id="title" inlist="" rel="schema:hasPart" resource="#title" typeof="bibo:Slide">
+          <h2 property="schema:name">🌐 A Decentralized Infrastructure for Trust-Aware Open Knowledge Sharing by Humans and AI Agents</h2>
+          <div datatype="rdf:HTML" property="schema:description">
+            <p>Tobias Kuhn, Virginia Balseiro, Ashley Caselli, Ziroli Plutschow, Piotr Sowiński, Anastasiya Danilenka</p>
+            <ul class="brands">
+              <li><a href="https://knowledgepixels.com/">Knowledge Pixels</a></li>
+              <li><a href="https://vu.nl/">VU Amsterdam</a></li>
+              <li><a href="https://neverblink.eu/">NeverBlink</a></li>
+              <li><a href="https://www.unige.ch/">University of Geneva</a></li>
+            </ul>
+          </div>
+        </section>
+
+        <section class="slide" id="problem" inlist="" rel="schema:hasPart" resource="#problem" typeof="bibo:Slide">
+          <h2 property="schema:name">🕳️ The gap</h2>
+          <div datatype="rdf:HTML" property="schema:description">
+            <p>The Semantic Web vision is largely in place — RDF, OWL, SPARQL, Linked Data — but knowledge still circulates as bulk dataset releases inside curated silos.</p>
+            <ul>
+              <li>No widely adopted way to publish single signed, citable assertions</li>
+              <li>No shared trust layer outside central platforms</li>
+              <li>No standard read surface with predictable provenance</li>
+            </ul>
+            <p>And now AI agents need a substrate they can publish to and query from on equal terms with humans.</p>
+          </div>
+        </section>
+
+        <section class="slide" id="vision" inlist="" rel="schema:hasPart" resource="#vision" typeof="bibo:Slide">
+          <h2 property="schema:name">🔭 The vision: Knowledge Space</h2>
+          <div datatype="rdf:HTML" property="schema:description">
+            <p>An open, decentralized ecosystem in which human (and machine) knowledge is shared as <strong>small, immutable, uniquely identified, cryptographically signed records</strong>, and trust is established through transparent algorithms over community assessments.</p>
+            <p>This paper makes that vision concrete: records, signing, registries, query, trust.</p>
+            <p><a href="https://w3id.org/knowledge-space/">w3id.org/knowledge-space</a></p>
+          </div>
+        </section>
+
+        <section class="slide" id="nanopubs" inlist="" rel="schema:hasPart" resource="#nanopubs" typeof="bibo:Slide">
+          <h2 property="schema:name"><img class="np-icon-lg" src="img/nanopub-icon.png" alt="" /> Nanopublications, recap</h2>
+          <div datatype="rdf:HTML" property="schema:description">
+            <p>Smallest unit of attributable, signed, structured knowledge — four named graphs:</p>
+            <ul>
+              <li><strong>Head</strong> — wrapper linking the other three</li>
+              <li><strong>Assertion</strong> — the actual claim</li>
+              <li><strong>Provenance</strong> — who/how it was produced</li>
+              <li><strong>Publication info</strong> — signature, timestamp, license</li>
+            </ul>
+            <p>Identified by a <strong>Trusty URI</strong>: a content-derived hash embedded in the URI itself, so every reference is self-verifying and immutable.</p>
+          </div>
+        </section>
+
+        <section class="slide" id="architecture" inlist="" rel="schema:hasPart" resource="#architecture" typeof="bibo:Slide">
+          <h2 property="schema:name">🏛️ Three-layer architecture</h2>
+          <div datatype="rdf:HTML" property="schema:description">
+            <img class="fig" src="../media/images/nanopub-architecture.svg" alt="High-level architecture of the nanopublication ecosystem" />
+            <p>Trusty URIs · federated <strong>Registries</strong> · <strong>Query</strong> services · client applications (<a href="https://nanodash.knowledgepixels.com/">Nanodash</a>).</p>
+          </div>
+        </section>
+
+        <section class="slide" id="registry" inlist="" rel="schema:hasPart" resource="#registry" typeof="bibo:Slide">
+          <h2 property="schema:name">🗄️ Nanopub Registry</h2>
+          <div datatype="rdf:HTML" property="schema:description">
+            <ul>
+              <li>Authenticates signatures, governs and replicates nanopublications</li>
+              <li>Stores by <em>(public key, type)</em> — coverage configurable per instance</li>
+              <li>Replicates list-by-list with running checksums; resumes after disruption</li>
+              <li>Retractions are themselves nanopublications — flag, not delete</li>
+              <li>Computes a deterministic <strong>trust state</strong> consumed by Query</li>
+            </ul>
+          </div>
+        </section>
+
+        <section class="slide" id="query" inlist="" rel="schema:hasPart" resource="#query" typeof="bibo:Slide">
+          <h2 property="schema:name">🔍 Nanopub Query</h2>
+          <div datatype="rdf:HTML" property="schema:description">
+            <ul>
+              <li>Materialised RDF4J indexes per signer / per type / sliding time window</li>
+              <li><em>Admin graphs</em> capture signatures, types, retractions, load order — most lookups are single SPARQL queries</li>
+              <li>Mirrors the Registry's trust state by hash; trust-aware queries become plain joins</li>
+              <li>Templated queries (OpenAPI) succeed the grlc-style service layer</li>
+            </ul>
+          </div>
+        </section>
+
+        <section class="slide" id="trust-types" inlist="" rel="schema:hasPart" resource="#trust-types" typeof="bibo:Slide">
+          <h2 property="schema:name">🤝 Trust as nanopublications</h2>
+          <div datatype="rdf:HTML" property="schema:description">
+            <p>The trust layer is itself made of nanopublications — signed, retractable, content-addressed:</p>
+            <ul>
+              <li><strong>Setting</strong> — declares the trust root and propagation policy of a Registry</li>
+              <li><strong>Introduction</strong> — binds an agent (ORCID) to a public key</li>
+              <li><strong>Endorsement</strong> — one signer <code>approvesOf</code> another nanopublication</li>
+              <li><strong>Index</strong> — groups nanopublications (e.g. the seed agents in a setting)</li>
+            </ul>
+          </div>
+        </section>
+
+        <section class="slide" id="examples-skeleton" inlist="" rel="schema:hasPart" resource="#examples-skeleton" typeof="bibo:Slide">
+          <h2 property="schema:name">📝 Nanopub skeleton (shared by all types)</h2>
+          <div datatype="rdf:HTML" property="schema:description">
+            <pre><code>@prefix this:  &lt;…this nanopub&gt; .
+@prefix sub:   &lt;…this nanopub/&gt; .
+…
+
+sub:Head { this: a np:Nanopublication ;
+           np:hasAssertion       sub:assertion ;
+           np:hasProvenance      sub:provenance ;
+           np:hasPublicationInfo sub:pubinfo . }
+
+sub:assertion { … }   # filled in per type, see next slides
+
+sub:provenance { sub:assertion prov:wasAttributedTo orcid:0000-0002-1267-0234 . }
+
+sub:pubinfo    { this: dct:created "2025-12-02T12:17:03Z"^^xsd:dateTime .
+                 sub:sig npx:hasPublicKey "MIGf…AB" ;
+                         npx:hasSignature "VFt…EQI=" ;
+                         npx:signedBy     orcid:0000-0002-1267-0234 . }</code></pre>
+          </div>
+        </section>
+
+        <section class="slide" id="examples-setting" inlist="" rel="schema:hasPart" resource="#examples-setting" typeof="bibo:Slide">
+          <h2 property="schema:name">📝 Setting assertion</h2>
+          <div datatype="rdf:HTML" property="schema:description">
+            <p>Declares the trust root and propagation policy of a Registry.</p>
+            <pre class="large"><code>sub:assertion {
+  sub:setting a npx:NanopubSetting ;
+    npx:hasAgents              &lt;…initialAgentsIndex&gt; ;
+    npx:hasBootstrapService    &lt;https://registry.knowledgepixels.com/&gt; ,
+                               &lt;https://registry.nanodash.net/&gt; ,
+                               &lt;https://registry.petapico.org/&gt; ;
+    npx:hasServices            &lt;…servicesIndex&gt; ;
+    npx:hasTrustRangeAlgorithm npx:IDEBT10 ;
+    npx:hasUpdateStrategy      npx:UpdatesByCreator . }</code></pre>
+          </div>
+        </section>
+
+        <section class="slide" id="examples-intro" inlist="" rel="schema:hasPart" resource="#examples-intro" typeof="bibo:Slide">
+          <h2 property="schema:name">📝 Introduction assertion</h2>
+          <div datatype="rdf:HTML" property="schema:description">
+            <p>Binds an agent (ORCID) to an RSA public key.</p>
+            <pre class="large"><code>sub:assertion {
+  sub:keyDecl npx:declaredBy   orcid:0000-0002-7487-4881 ;
+              npx:hasAlgorithm "RSA" ;
+              npx:hasPublicKey "MIGfMA0GCSqG…wIDAQAB" . }</code></pre>
+          </div>
+        </section>
+
+        <section class="slide" id="examples-endorsement" inlist="" rel="schema:hasPart" resource="#examples-endorsement" typeof="bibo:Slide">
+          <h2 property="schema:name">📝 Endorsement assertion</h2>
+          <div datatype="rdf:HTML" property="schema:description">
+            <p>One signer approves another nanopublication — typically an introduction — adding a trust edge.</p>
+            <pre class="large"><code>sub:assertion {
+  orcid:0000-0002-1267-0234
+    npx:approvesOf &lt;https://w3id.org/np/RA2rnE4Gi…&gt; . }</code></pre>
+          </div>
+        </section>
+
+        <section class="slide" id="examples-index" inlist="" rel="schema:hasPart" resource="#examples-index" typeof="bibo:Slide">
+          <h2 property="schema:name">📝 Index assertion</h2>
+          <div datatype="rdf:HTML" property="schema:description">
+            <p>Groups other nanopublications — here, the <code>initialAgentsIndex</code> referenced by the setting above.</p>
+            <pre class="large"><code>sub:assertion {
+  sub:initialAgentsIndex a npx:NanopubIndex ;
+    npx:includesElement &lt;https://w3id.org/np/RA2rnE4Gi…&gt; ,
+                        &lt;https://w3id.org/np/RAxKSHJSR…&gt; ,
+                        &lt;https://w3id.org/np/RABm7U1wy…&gt; . }</code></pre>
+          </div>
+        </section>
+
+        <section class="slide" id="idebt" inlist="" rel="schema:hasPart" resource="#idebt" typeof="bibo:Slide">
+          <h2 property="schema:name">⚖️ IDEBT — trust calculation</h2>
+          <div datatype="rdf:HTML" property="schema:description">
+            <p><em>Iterative Declaration-Endorsement Bounded Trust.</em></p>
+            <ul>
+              <li>Seed-rooted, decay-bounded propagation along endorsement edges</li>
+              <li>Bounded by depth <code>MAX_DEPTH</code> and ratio cutoff <code>MIN_RATIO</code></li>
+              <li><code>SELF_SHARE</code> retained on the parent; <code>(1 − SELF_SHARE)</code> split across endorsed children</li>
+              <li><strong>Bounded</strong> · <strong>deterministic</strong> · <strong>re-runnable</strong></li>
+              <li>Trust state is content-addressable — peers mirror by hash, no consensus ledger</li>
+            </ul>
+          </div>
+        </section>
+
+        <section class="slide" id="idebt-code-init" inlist="" rel="schema:hasPart" resource="#idebt-code-init" typeof="bibo:Slide">
+          <h2 property="schema:name">💻 IDEBT pseudo-code — initialisation</h2>
+          <div datatype="rdf:HTML" property="schema:description">
+            <pre><code>IDEBT():
+  paths        ← { (chain = [$], ratio = 1.0, ¬primary) }
+  declarations ← { peers.fetch(u) :
+                   u ∈ peers.fetch(setting.agentIntroCollection) }
+  endorsements ← ∅
+  N            ← { ($, (a, k)) :
+                   (a, k) declared by some D ∈ declarations }
+  …</code></pre>
+            <p>Seeds <code>paths</code> with the root, fetches the initial declarations from the agent-intro index referenced by the setting, and builds the first-hop edge set <code>N</code> from the root sentinel <code>$</code> to each declared <code>(a, k)</code>.</p>
+          </div>
+        </section>
+
+        <section class="slide" id="idebt-code-loop" inlist="" rel="schema:hasPart" resource="#idebt-code-loop" typeof="bibo:Slide">
+          <h2 property="schema:name">💻 IDEBT pseudo-code — depth loop</h2>
+          <div datatype="rdf:HTML" property="schema:description">
+            <pre><code>  for d = 1 to MAX_DEPTH:
+    expand ← SelectFrontier(d - 1)
+    if expand = ∅: break
+    for p in expand:
+      k ← pubkey(end(p))
+      declarations ← declarations ∪ peers.fetch(k, DECLARE_TYPE)
+      endorsements ← endorsements ∪ peers.fetch(k, ENDORSE_TYPE)
+      N ← N ∪ { ((a, k), (a', k')) :
+                ∃ E ∈ endorsements signed by (a, k),
+                ∃ D ∈ declarations referenced by E,
+                D declares (a', k') }
+    Expand(expand, N)</code></pre>
+            <p>Each iteration selects the highest-ratio non-primary path per endpoint, fetches its endorsements/declarations from peers, extends <code>N</code>, then expands ratios across the new edges.</p>
+          </div>
+        </section>
+
+        <section class="slide" id="idebt10" inlist="" rel="schema:hasPart" resource="#idebt10" typeof="bibo:Slide">
+          <h2 property="schema:name">⚙️ Deployed configuration: IDEBT10()</h2>
+          <div datatype="rdf:HTML" property="schema:description">
+            <pre><code>IDEBT10():
+  MAX_DEPTH  ← 10
+  MIN_RATIO  ← 10⁻¹⁰
+  SELF_SHARE ← 0.1
+  IDEBT()</code></pre>
+            <p>Per-key score: sum of path ratios → quota clamped between <code>MIN_QUOTA</code> and <code>MAX_QUOTA</code>; <em>approved</em> if exactly one agent claims the key, <em>contested</em> otherwise.</p>
+            <p>Trust-state hash = SHA-256 of the canonicalised path set.</p>
+          </div>
+        </section>
+
+        <section class="slide" id="snapshot-counts" inlist="" rel="schema:hasPart" resource="#snapshot-counts" typeof="bibo:Slide">
+          <h2 property="schema:name">📊 Live snapshot — identity and content</h2>
+          <div datatype="rdf:HTML" property="schema:description">
+            <p><code>registry.knowledgepixels.com</code> · 2026-05-04 · trust-state hash <code>4d07f8db…</code></p>
+            <table>
+              <thead><tr><th>Quantity</th><th>Value</th></tr></thead>
+              <tbody>
+                <tr><td>Distinct signers (agents)</td><td>616</td></tr>
+                <tr><td>Signer-key accounts (loaded / contested / skipped)</td><td>692 / 4 / 5</td></tr>
+                <tr><td>Accounts per agent (max; modal)</td><td>6 (max); 1 (89%)</td></tr>
+                <tr><td>Stored nanopublications</td><td>79,672</td></tr>
+                <tr><td>Registry version / trust-state counter</td><td>1.9.0 / 25</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="slide" id="snapshot-trust" inlist="" rel="schema:hasPart" resource="#snapshot-trust" typeof="bibo:Slide">
+          <h2 property="schema:name">🕸️ Live snapshot — trust graph</h2>
+          <div datatype="rdf:HTML" property="schema:description">
+            <table>
+              <thead><tr><th>Quantity</th><th>Value</th></tr></thead>
+              <tbody>
+                <tr><td>Trust paths (primary / extended)</td><td>772 (695 / 77)</td></tr>
+                <tr><td>Distinct endorsement edges</td><td>772</td></tr>
+                <tr><td>Effective depth range</td><td>1–5</td></tr>
+                <tr><td>Accounts with a single trust path</td><td>656 / 692 (94.8%)</td></tr>
+                <tr><td>Total ratio mass over loaded accounts</td><td>0.104 (root self 0.10; ≪ 1.0)</td></tr>
+                <tr><td>Accounts ≥ 10⁻⁴ / ≥ 10⁻³ ratio</td><td>19 / 17</td></tr>
+                <tr><td>Distinct quota tiers (accounts at floor)</td><td>43 (179 at floor 1000)</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="slide" id="fig-depth" inlist="" rel="schema:hasPart" resource="#fig-depth" typeof="bibo:Slide">
+          <h2 property="schema:name">📉 Bounded depth and ratio decay</h2>
+          <div datatype="rdf:HTML" property="schema:description">
+            <img class="bigfig" src="../analysis/figures/depth-mass.svg" alt="Per-path depth distribution and ratio mass per depth" />
+            <p>Effective depth ≤ 5; ratio mass decays roughly geometrically — matches the bounds claimed for IDEBT.</p>
+          </div>
+        </section>
+
+        <section class="slide" id="fig-volume" inlist="" rel="schema:hasPart" resource="#fig-volume" typeof="bibo:Slide">
+          <h2 property="schema:name">📈 Publication volume per signer</h2>
+          <div datatype="rdf:HTML" property="schema:description">
+            <img class="bigfig" src="../analysis/figures/publication-volume.svg" alt="Publication volume per signer-key and per agent" />
+            <p>Strongly heavy-tailed: trust mass and content volume are concentrated very differently — top agent &lt; 1% of trust mass, but a single bot account produces ~41% of nanopubs.</p>
+          </div>
+        </section>
+
+        <section class="slide" id="fig-growth" inlist="" rel="schema:hasPart" resource="#fig-growth" typeof="bibo:Slide">
+          <h2 property="schema:name">📅 Network growth over time</h2>
+          <div datatype="rdf:HTML" property="schema:description">
+            <img class="bigfig" src="../analysis/figures/network-growth.svg" alt="Cumulative growth of introductions and endorsements" />
+            <p>Identity registration goes back to 2019; explicit endorsement activity starts late 2022 and accelerates as the trust layer is bootstrapped.</p>
+          </div>
+        </section>
+
+        <section class="slide" id="positioning" inlist="" rel="schema:hasPart" resource="#positioning" typeof="bibo:Slide">
+          <h2 property="schema:name">🧭 How it differs</h2>
+          <div datatype="rdf:HTML" property="schema:description">
+            <ul>
+              <li>vs. <strong>OpenPGP web of trust</strong> — explicit, parameterised propagation rule</li>
+              <li>vs. <strong>EigenTrust / TrustRank / Appleseed</strong> — bounded, deterministic, content-addressable trust state</li>
+              <li>vs. <strong>IPFS / CT / Sigstore</strong> — same content-addressed integrity, at the granularity of signed RDF</li>
+              <li>vs. <strong>DIDs / KERI / AT Protocol labellers</strong> — identity, content, and moderation in one substrate</li>
+            </ul>
+          </div>
+        </section>
+
+        <section class="slide" id="conclusion" inlist="" rel="schema:hasPart" resource="#conclusion" typeof="bibo:Slide">
+          <h2 property="schema:name">🎯 Takeaway</h2>
+          <div datatype="rdf:HTML" property="schema:description">
+            <p>A working, decentralized network of services for signed, queryable, trust-aware knowledge — humans and AI agents publish to and query from the same substrate.</p>
+            <p>Open, standards-based, and already running at pilot scale.</p>
+            <p><a href="../">→ Read the paper draft</a></p>
+          </div>
+        </section>
+
+        <section class="slide" id="thanks" inlist="" rel="schema:hasPart" resource="#thanks" typeof="bibo:Slide">
+          <h2 property="schema:name">🙏 Thank you</h2>
+          <div datatype="rdf:HTML" property="schema:description">
+            <p>Questions?</p>
+            <ul class="brands">
+              <li><a href="https://knowledgepixels.com/">knowledgepixels.com</a></li>
+              <li><a href="https://w3id.org/knowledge-space/">w3id.org/knowledge-space</a></li>
+              <li><img class="np-icon" src="img/nanopub-icon.png" alt="" /> <a href="https://nanopub.net/">nanopub.net</a></li>
+            </ul>
+          </div>
+        </section>
+
+      </article>
+    </main>
+  </body>
+</html>
