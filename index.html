@@ -110,6 +110,53 @@
                   <p>Three orthogonal attributes determine how the Registry stores and governs a nanopublication: the <em>public key</em> used to sign it, the <em>signer</em> that controls that key, and the <em>types</em> the nanopublication declares about itself. We use <em>signer</em> as the primary term — the nanopub data model and the Registry code call this entity an <em>agent</em> — to stress the cryptographic role and to distinguish it from semantic creators or contributors a nanopublication may additionally declare.</p>
                   <p>Every accepted nanopublication carries a signature made with an RSA public key, which the Registry identifies by its SHA-256 hash and treats as the primary account identifier. Signers are identified by persistent URIs (typically ORCIDs) and are bound to their keys through <em>introduction nanopublications</em>. This binding is many-to-many and auditable: a key whose only claimant is a single signer yields an <em>approved</em> account, whereas two or more signers claiming the same key yields <em>contested</em> accounts that are held back from general availability until the ambiguity is resolved.</p>
                   <p>Each nanopublication further declares a set of types (IRIs) that place it in a functional or domain class (assertion, introduction, endorsement, template, and so on). A Registry instance has a configurable <em>coverage</em> — a set of types, with introductions, endorsements, and the setting nanopublication always included — that fixes what the instance stores; nanopublications of uncovered types are rejected. Storage is organised first by signer and public key (reflecting <em>who</em> published) and, within each key, by type (reflecting <em>what</em>).</p>
+                  <p>Three nanopublication types drive the trust layer specifically: a <em>setting</em> nanopublication parameterises a Registry, <em>introduction</em> nanopublications bind agent identifiers to public keys, and <em>endorsement</em> nanopublications add trust edges between such bindings. <a href="#fig-nanopub-examples">Figure 2</a> shows the same simplified TriG skeleton for all three. Every nanopublication shares the four-graph wrapper at the top (head, provenance, pubinfo); only the assertion graph differs by type.</p>
+                  <figure id="fig-nanopub-examples">
+                    <pre><code>@prefix this:  &lt;…this nanopub&gt; .
+@prefix sub:   &lt;…this nanopub/&gt; .
+@prefix np:    &lt;http://www.nanopub.org/nschema#&gt; .
+@prefix npx:   &lt;http://purl.org/nanopub/x/&gt; .
+@prefix dct:   &lt;http://purl.org/dc/terms/&gt; .
+@prefix xsd:   &lt;http://www.w3.org/2001/XMLSchema#&gt; .
+@prefix orcid: &lt;https://orcid.org/&gt; .
+@prefix prov:  &lt;http://www.w3.org/ns/prov#&gt; .
+
+# Common Head graph (identical across types):
+sub:Head { this: a np:Nanopublication ;
+           np:hasAssertion       sub:assertion ;
+           np:hasProvenance      sub:provenance ;
+           np:hasPublicationInfo sub:pubinfo . }
+
+# (a) Setting assertion — declares the trust root and propagation policy
+sub:assertion {
+  sub:setting a npx:NanopubSetting ;
+    npx:hasAgents              &lt;…initialAgents&gt; ;
+    npx:hasBootstrapService    &lt;https://registry.knowledgepixels.com/&gt; ,
+                               &lt;https://registry.nanodash.net/&gt; ,
+                               &lt;https://registry.petapico.org/&gt; ;
+    npx:hasServices            &lt;…services&gt; ;
+    npx:hasTrustRangeAlgorithm npx:IDEBT10 ;
+    npx:hasUpdateStrategy      npx:UpdatesByCreator . }
+
+# (b) Introduction assertion — binds an agent (ORCID) to a public key
+sub:assertion {
+  sub:keyDecl npx:declaredBy   orcid:0000-0002-7487-4881 ;
+              npx:hasAlgorithm "RSA" ;
+              npx:hasPublicKey "MIGfMA0GCSqG…wIDAQAB" . }
+
+# (c) Endorsement assertion — approves another nanopublication (typically an introduction)
+sub:assertion {
+  orcid:0000-0002-1267-0234
+    npx:approvesOf &lt;https://w3id.org/np/RA2rnE4Gi…&gt; . }
+
+# Common provenance and pubinfo graphs (identical across types):
+sub:provenance { sub:assertion prov:wasAttributedTo orcid:0000-0002-1267-0234 . }
+sub:pubinfo    { this: dct:created "2025-12-02T12:17:03Z"^^xsd:dateTime .
+                 sub:sig npx:hasPublicKey "MIGf…AB" ;
+                         npx:hasSignature "VFt…EQI=" ;
+                         npx:signedBy     orcid:0000-0002-1267-0234 . }</code></pre>
+                    <figcaption>Simplified TriG skeletons for the three nanopublication types that drive the trust layer, with common prefixes and the shared four-graph wrapper shown once at the top. (a) The <em>setting</em> identifies the seed agents and trust-propagation policy of a Registry. (b) An <em>introduction</em> binds an agent identifier (an ORCID) to an RSA public key via a key-declaration resource. (c) An <em>endorsement</em> states that one signer <code>npx:approvesOf</code> another nanopublication, thereby adding a trust edge from the endorsing key to the endorsed binding.</figcaption>
+                  </figure>
                 </div>
               </section>
               <section id="ingest-replication-and-retractions" rel="schema:hasPart" resource="#ingest-replication-and-retractions">
@@ -326,7 +373,7 @@ trustStateId ← hash(canonicalSerialisation(paths))</code></pre>
                     <p><img alt="Cumulative growth and per-month arrivals of introduction and endorsement nanopubs" src="analysis/figures/network-growth.svg" /></p>
                     <figcaption>Cumulative count over time of first-time introduction nanopublications per pubkey (683 of 955 raw intros) and non-invalidated endorsement nanopublications whose assertion approves a known introduction (736 of 975), based on each nanopub's <code>dct:created</code> timestamp. Identity registration goes back to January 2019, but explicit endorsement activity only starts in late 2022 and accelerates through 2024–2026 as the network is bootstrapped under the current setting.</figcaption>
                   </figure>
-                  <p><mark class="todo">Draft — interpretation.</mark> Three properties claimed for IDEBT in Section <a href="#trust-calculation-with-idebt">Trust calculation with IDEBT</a> are visible in the snapshot. First, <em>bounded effective depth</em>: although the algorithm imposes no hard <code>MAX_DEPTH</code> beyond the configured policy, the ratio gate alone keeps every path within five hops of the root, and the 14 first-hop paths correspond cleanly to the seed signer-keys declared in the setting. Second, <em>ratio decay and conservation</em>: the per-depth aggregated mass drops by roughly an order of magnitude per hop, and the total mass over all loaded accounts (0.10) plus the root self-ratio (0.10) sums to 0.20, well below the 1.0 ceiling guaranteed by construction. Third, <em>no path explosion</em>: 95% of accounts are reached by exactly one trust path, the 772 total paths split into 695 primary chains and only 77 extended (deduplicated) ones, and the unique-edge count equals the path count, confirming that the no-revisit and extended-once policies keep the path set linear in the size of the endorsement graph. The publication-volume distribution shows that the trust graph and the content graph are concentrated very differently: by trust mass the network is moderately distributed (the top agent carries less than 1% of total mass), but by raw publication count it is dominated by a handful of high-throughput signers — at the current pilot scale, a single bot agent has produced more than 40% of all nanopublications attributable to loaded keys. The temporal profile in <a href="#fig-network-growth">Figure 4</a> sharpens the picture: identity registration goes back to early 2019, but the explicit trust layer is much more recent — endorsements only appear from late 2022 onward, and most of the current trust graph has been issued in the last two years by a small set of 44 active endorsing keys.</p>
+                  <p><mark class="todo">Draft — interpretation.</mark> Three properties claimed for IDEBT in Section <a href="#trust-calculation-with-idebt">Trust calculation with IDEBT</a> are visible in the snapshot. First, <em>bounded effective depth</em>: although the algorithm imposes no hard <code>MAX_DEPTH</code> beyond the configured policy, the ratio gate alone keeps every path within five hops of the root, and the 14 first-hop paths correspond cleanly to the seed signer-keys declared in the setting. Second, <em>ratio decay and conservation</em>: the per-depth aggregated mass drops by roughly an order of magnitude per hop, and the total mass over all loaded accounts (0.10) plus the root self-ratio (0.10) sums to 0.20, well below the 1.0 ceiling guaranteed by construction. Third, <em>no path explosion</em>: 95% of accounts are reached by exactly one trust path, the 772 total paths split into 695 primary chains and only 77 extended (deduplicated) ones, and the unique-edge count equals the path count, confirming that the no-revisit and extended-once policies keep the path set linear in the size of the endorsement graph. The publication-volume distribution shows that the trust graph and the content graph are concentrated very differently: by trust mass the network is moderately distributed (the top agent carries less than 1% of total mass), but by raw publication count it is dominated by a handful of high-throughput signers — at the current pilot scale, a single bot agent has produced more than 40% of all nanopublications attributable to loaded keys. The temporal profile in <a href="#fig-network-growth">Figure 5</a> sharpens the picture: identity registration goes back to early 2019, but the explicit trust layer is much more recent — endorsements only appear from late 2022 onward, and most of the current trust graph has been issued in the last two years by a small set of 44 active endorsing keys.</p>
                   <p><mark class="todo">Draft — caveats.</mark> The figures reflect a single-vantage-point snapshot of a curated pilot network: 616 signers and ~80k nanopublications is not a scale claim, the agent set reflects who has been seeded into the trust root rather than organic adoption, and other public registries may produce slightly different account sets under different coverage policies. The trust-state hash and the cached input data under <code>analysis/data/</code> make the snapshot reproducible; any updated submission should re-fetch and refresh the numbers above.</p>
                 </div>
               </section>
