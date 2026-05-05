@@ -19,6 +19,8 @@
         width: auto; height: auto; object-fit: contain;
         display: block; margin: 0 auto;
       }
+      /* Figure-only slides: let the description column fill more vertical space. */
+      .shower .slide.figure-only > div[property="schema:description"] { max-height: 500px; height: 500px; }
       .shower .slide pre { font-size: 14px; line-height: 1.25; }
       .shower .slide pre.small { font-size: 12px; }
       .shower .slide pre.large { font-size: 20px; line-height: 1.3; }
@@ -333,25 +335,22 @@ sub:pubinfo    { this: dct:created "2025-12-02T12:17:03Z"^^xsd:dateTime .
             </table>
           </div>
         </section>
-        <section class="slide" id="bounded-depth-and-ratio-decay" inlist="" rel="schema:hasPart" resource="#bounded-depth-and-ratio-decay" typeof="bibo:Slide">
+        <section class="slide figure-only" id="bounded-depth-and-ratio-decay" inlist="" rel="schema:hasPart" resource="#bounded-depth-and-ratio-decay" typeof="bibo:Slide">
           <h2 property="schema:name">📉 Bounded depth and ratio decay</h2>
           <div datatype="rdf:HTML" property="schema:description">
-            <p><img alt="Per-path depth distribution and ratio mass per depth" class="bigfig" src="../analysis/figures/depth-mass.svg" /></p>
-            <p>Effective depth ≤ 5; ratio mass decays roughly geometrically — matches the bounds claimed for IDEBT.</p>
+            <img alt="Per-path depth distribution and ratio mass per depth" class="bigfig" src="../analysis/figures/depth-mass.svg" />
           </div>
         </section>
-        <section class="slide" id="publication-volume-per-signer" inlist="" rel="schema:hasPart" resource="#publication-volume-per-signer" typeof="bibo:Slide">
+        <section class="slide figure-only" id="publication-volume-per-signer" inlist="" rel="schema:hasPart" resource="#publication-volume-per-signer" typeof="bibo:Slide">
           <h2 property="schema:name">📈 Publication volume per signer</h2>
           <div datatype="rdf:HTML" property="schema:description">
-            <p><img alt="Publication volume per signer-key and per agent" class="bigfig" src="../analysis/figures/publication-volume.svg" /></p>
-            <p>Strongly heavy-tailed: trust mass and content volume are concentrated very differently — top agent &lt; 1% of trust mass, but a single bot account produces ~41% of nanopubs.</p>
+            <img alt="Publication volume per signer-key and per agent" class="bigfig" src="../analysis/figures/publication-volume.svg" />
           </div>
         </section>
-        <section class="slide" id="network-growth-over-time" inlist="" rel="schema:hasPart" resource="#network-growth-over-time" typeof="bibo:Slide">
+        <section class="slide figure-only" id="network-growth-over-time" inlist="" rel="schema:hasPart" resource="#network-growth-over-time" typeof="bibo:Slide">
           <h2 property="schema:name">📅 Network growth over time</h2>
           <div datatype="rdf:HTML" property="schema:description">
-            <p><img alt="Cumulative growth of introductions and endorsements" class="bigfig" src="../analysis/figures/network-growth.svg" /></p>
-            <p>Identity registration goes back to 2019; explicit endorsement activity starts late 2022 and accelerates as the trust layer is bootstrapped.</p>
+            <img alt="Cumulative growth of introductions and endorsements" class="bigfig" src="../analysis/figures/network-growth.svg" />
           </div>
         </section>
         <section class="slide" id="how-it-differs" inlist="" rel="schema:hasPart" resource="#how-it-differs" typeof="bibo:Slide">
