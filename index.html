@@ -80,15 +80,7 @@
             <h2 property="schema:name">Approach</h2>
             <div datatype="rdf:HTML" property="schema:description">
               <p><mark class="todo">describe the components of the ecosystem (servers, registries, clients, templates, services) and how they interact.</mark></p>
-              <p>Things the second generation nanopublication network adds:</p>
-              <ul>
-                <li>Only signed nanopublications</li>
-                <li>Recognizes nanopublication types, and uses these to organize them</li>
-                <li>All nanopublications are listed first by pubkey, and then by type</li>
-                <li>Registry and Query instances can restrict their content by pubkeys and/or types</li>
-                <li>Trust network aware, starting from setting nanopublication</li>
-                <li>Quota system</li>
-              </ul>
+              <p><mark class="todo">Draft — revise.</mark> The second generation of the nanopublication network tightens what counts as a valid nanopublication and how it is organised, distributed, and queried. Only signed nanopublications are accepted; they remain immutable, but support first-class retraction and supersession. Each nanopublication is stored, replicated, and exposed along two organising axes — its signing key and its declared types — which Registry and Query instances can restrict to define their coverage. Replication between Registries proceeds along these same axes via paginated, checksummed lists, and Query services materialise per-signer and per-type repositories so that narrow-scoped queries do not need to scan the full graph. Each Registry is parameterised by a setting nanopublication that defines its trust seed and policies; the resulting trust state is content-addressable, so peers and clients can mirror it without recomputing. Per-signer publication quotas, derived from the same trust calculation, complete the picture.</p>
               <section id="architecture" rel="schema:hasPart" resource="#architecture">
                 <h3 property="schema:name">Architecture</h3>
                 <div datatype="rdf:HTML" property="schema:description">
@@ -170,6 +162,7 @@ sub:pubinfo    { this: dct:created "2025-12-02T12:17:03Z"^^xsd:dateTime .
                   <p>Incoming nanopublications enter a Registry through an HTTP POST endpoint. The Registry verifies the signature against the declared public key, checks that the nanopublication's types fall within the instance's coverage, resolves the signer's account, and enforces the per-key publication quota derived from the trust-calculation step; if any of these checks fails — invalid signature, uncovered type, unknown or contested key, or quota exceeded — the submission is rejected without side effects. Accepted nanopublications are immutable and become retrievable from the instance by their Trusty URI.</p>
                   <p>Registries replicate content from one another along the same (public key, type) axes as their internal organisation. Every ordered per-(public key, type) list is exposed as a paginated HTTP resource; entries carry a running position and per-entry checksum, which peers use to detect divergence and resume replication after interruption. An instance therefore does not mirror the entire network: it selects the public keys and types it covers and pulls only the corresponding lists from its peers, alongside a small number of fixed endpoints for Trusty-URI lookup, coverage declaration, and the trust-state snapshot introduced in the next section.</p>
                   <p>Retractions are themselves nanopublications that reference, by Trusty URI, the nanopublications they retract. The Registry does not delete the target — every nanopublication remains resolvable by its hash — but it sets an <em>invalidated</em> flag on the corresponding list entry. When the retracted nanopublication is an introduction or endorsement, the invalidation additionally propagates into the next trust-state computation, so that stale keys and edges are removed from the trust graph as part of its normal re-derivation.</p>
+                  <p><mark class="todo">Describe supersession alongside retraction: how a new nanopublication replaces an earlier one (the supersession links recorded in Query's admin graphs), how this differs from retraction, and how it affects ingest, replication, and the resolution of "the latest version of X".</mark></p>
                 </div>
               </section>
               <section id="trust-calculation-with-idebt" rel="schema:hasPart" resource="#trust-calculation-with-idebt">
