@@ -221,13 +221,13 @@ def compute(snap, accounts, agents, perkey_counts, events, paths, extended_flags
     }
 
 
-def plot_depth_and_mass(stats):
+def plot_snapshot(stats):
     depths = sorted(stats["depth_counts"].keys())
     counts = [stats["depth_counts"][d] for d in depths]
-    mass_depths = sorted(stats["depth_mass"].keys())
-    mass = [stats["depth_mass"][d] for d in mass_depths]
+    intro_ts = [datetime.fromisoformat(s) for s in stats["_intro_ts"]]
+    endor_ts = [datetime.fromisoformat(s) for s in stats["_endor_ts"]]
 
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(7.0, 2.6))
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(8.0, 2.8))
 
     ax1.bar(depths, counts, color="#3b6fb6", width=0.7)
     for d, c in zip(depths, counts):
@@ -240,49 +240,28 @@ def plot_depth_and_mass(stats):
     ax1.spines["top"].set_visible(False)
     ax1.spines["right"].set_visible(False)
 
-    ax2.bar(mass_depths, mass, color="#b6573b", width=0.7)
-    ax2.set_yscale("log")
-    ax2.set_xlabel("depth")
-    ax2.set_ylabel("aggregated ratio mass (log)")
-    ax2.set_title("(b) ratio mass per depth", fontsize=10)
-    ax2.set_xticks(mass_depths)
+    if intro_ts:
+        ax2.plot(intro_ts, range(1, len(intro_ts) + 1), color="#3b6fb6",
+                 lw=1.6, label=f"introductions ({len(intro_ts)})")
+    if endor_ts:
+        ax2.plot(endor_ts, range(1, len(endor_ts) + 1), color="#b6573b",
+                 lw=1.6, label=f"endorsements ({len(endor_ts)})")
+    ax2.set_xlabel("creation time (UTC)")
+    ax2.set_ylabel("cumulative count")
+    ax2.set_title("(b) cumulative growth", fontsize=10)
+    ax2.legend(frameon=False, fontsize=8, loc="upper left")
     ax2.spines["top"].set_visible(False)
     ax2.spines["right"].set_visible(False)
-    for d, m in zip(mass_depths, mass):
-        ax2.text(d, m, f"{m:.2g}", ha="center", va="bottom", fontsize=8)
+    ax2.xaxis.set_major_locator(mdates.YearLocator())
+    ax2.xaxis.set_major_formatter(mdates.DateFormatter("%Y"))
 
     fig.tight_layout()
-    out = FIGS / "depth-mass.svg"
+    out = FIGS / "snapshot.svg"
     fig.savefig(out, format="svg", bbox_inches="tight")
     plt.close(fig)
-    return out
-
-
-def plot_timeline(stats):
-    intro_ts = [datetime.fromisoformat(s) for s in stats["_intro_ts"]]
-    endor_ts = [datetime.fromisoformat(s) for s in stats["_endor_ts"]]
-
-    fig, ax = plt.subplots(figsize=(5.0, 2.8))
-
-    if intro_ts:
-        ax.plot(intro_ts, range(1, len(intro_ts) + 1), color="#3b6fb6",
-                lw=1.6, label=f"introductions ({len(intro_ts)})")
-    if endor_ts:
-        ax.plot(endor_ts, range(1, len(endor_ts) + 1), color="#b6573b",
-                lw=1.6, label=f"endorsements ({len(endor_ts)})")
-    ax.set_xlabel("creation time (UTC)")
-    ax.set_ylabel("cumulative count")
-    ax.set_title("cumulative growth of intros and endorsements", fontsize=10)
-    ax.legend(frameon=False, fontsize=8, loc="upper left")
-    ax.spines["top"].set_visible(False)
-    ax.spines["right"].set_visible(False)
-    ax.xaxis.set_major_locator(mdates.YearLocator())
-    ax.xaxis.set_major_formatter(mdates.DateFormatter("%Y"))
-
-    fig.tight_layout()
-    out = FIGS / "network-growth.svg"
-    fig.savefig(out, format="svg", bbox_inches="tight")
-    plt.close(fig)
+    for stale in (FIGS / "depth-mass.svg", FIGS / "network-growth.svg"):
+        if stale.exists():
+            stale.unlink()
     return out
 
 
@@ -321,9 +300,8 @@ def plot_publication_volume(stats):
 def main():
     snap, accounts, agents, perkey_counts, events, paths, extended_flags = load()
     stats = compute(snap, accounts, agents, perkey_counts, events, paths, extended_flags)
-    plot_depth_and_mass(stats)
+    plot_snapshot(stats)
     plot_publication_volume(stats)
-    plot_timeline(stats)
     # Strip private (sortable list) fields before persisting stats.
     persist = {k: v for k, v in stats.items() if not k.startswith("_")}
     (DATA / "stats.json").write_text(json.dumps(persist, indent=2) + "\n")
