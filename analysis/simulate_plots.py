@@ -34,12 +34,12 @@ rr_per_registry = list(rr_cluster)
 # Type-sharded: each Registry covers half the type space, so the
 # per-Registry rate is ~17 np/s while cluster throughput is ~1.5x that.
 # Phases 3 and 4 are pending and rendered as missing data.
-ts_per_registry = [17.83, 16.55, NAN, NAN]
-ts_cluster = [26.50, 24.59, NAN, NAN]
+ts_per_registry = [17.83, 16.55, 14.58, 13.08]
+ts_cluster = [26.50, 24.59, 21.60, 19.43]
 
 # Average query response time during the 20-min, 24-client workload (ms).
 rr_latency_ms = [4.27, 3.25, 5.05, 3.33]
-ts_latency_ms = [2.13, 2.35, NAN, NAN]
+ts_latency_ms = [2.13, 2.35, 2.30, 2.33]
 
 # Average CPU usage (% of one core) per component during ingestion,
 # averaged across the four instances of each component, round-robin run.
