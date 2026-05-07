@@ -65,11 +65,11 @@
               <p>The <em>Knowledge Space</em> [<a class="ref" href="#ref-10">10</a>] is a vision of a such a global infrastructure: an open and decentralized global socio-technical ecosystem in which knowledge is shared as small, immutable, uniquely identified, and cryptographically signed records, and in which trust in agents and services is established through transparent algorithms over community assessments. We are here proposing a concrete implementation of that vision, providing the needed record format, signing infrastructure, registries, query services, and trust computation.</p>
               <p>The research question we address is therefore: <em>How can a decentralized infrastructure enable open, trust-aware knowledge sharing by humans and autonomous agents alike, achieving scalability and reliability without delegating trust judgement to a central operator?</em> The main contributions of this paper are:</p>
               <ul>
-                <li><mark class="todo">Double-check the restructured contribution list before submission.</mark> <em>IDEBT</em>, a seed-rooted trust-propagation algorithm that — uniquely among comparable approaches — is bounded independently of graph branching factor, deterministic modulo an explicit tie-break, and yields a <em>content-addressable</em> trust state that downstream services mirror without re-running the computation.</li>
-                <li>A federated nanopublication architecture that operationalises IDEBT end-to-end, with paginated checksummed replication and per-(pubkey, type) slicing for query.</li>
-                <li>Open-source software components — Nanopub Registry, Nanopub Query, and Nanodash — that implement this architecture and host the live deployed network.</li>
-                <li>A descriptive analysis of the live network (616 agents, ~80k nanopublications) that empirically exhibits IDEBT's bounded-depth and ratio-conservation properties on a real trust graph.</li>
-                <li>A controlled multi-node deployment study showing that per-Registry ingestion (~17 np/s) is preserved under type-sharded coverage, that cluster throughput rises by 1.5× at constant hardware budget, and that query latency stays in the millisecond range as the corpus grows fourfold.</li>
+                <li>A federated architecture for decentralized and scalable nanopublication publishing and querying.</li>
+                <li>A deterministic and bounded trust algorithm called <em>IDEBT</em> that yields in a decentralized nanopublication-based environment a locally verifiable trust network that other services can build upon.</li>
+                <li>Software components implementing the architecture and trust algorithm above, in the form of Nanopub Registry, Nanopub Query, and Nanodash</li>
+                <li>A descriptive analysis of the live deployed network applying the architecture, the trust algorithm, and the software components above, demonstrating the network's overall practical functioning.</li>
+                <li><mark class="todo">TBA — main quantitative result of the multi-node simulation experiment.</mark></li>
               </ul>
             </div>
           </section>
