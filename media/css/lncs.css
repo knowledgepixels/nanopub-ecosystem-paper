@@ -1174,6 +1174,9 @@ display:none !important;
 }
 
 /* Project tweaks */
+pre {
+font-size:0.8em;
+}
 figure p {
 text-indent:0;
 text-align:center;
