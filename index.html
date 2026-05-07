@@ -16,7 +16,7 @@
         <h1 property="schema:name">A Robust Decentralized Infrastructure for Trust-Aware Open Knowledge Sharing <span class="draft-tag">[DRAFT]</span></h1>
         <dl id="document-modified">
           <dt>Modified</dt>
-          <dd><time content="2026-05-07T19:31:08.463Z" datatype="xsd:dateTime" datetime="2026-05-07T19:31:08.463Z" property="schema:dateModified">5/7/2026</time></dd>
+          <dd><time content="2026-05-07T19:45:36.252Z" datatype="xsd:dateTime" datetime="2026-05-07T19:45:36.252Z" property="schema:dateModified">5/7/2026</time></dd>
         </dl>
         <div id="authors">
           <dl id="author-name">
@@ -197,9 +197,7 @@ sub:pubinfo    { this: dct:created "2025-12-02T12:17:03Z"^^xsd:dateTime .
                   <div datatype="rdf:HTML" property="schema:description">
                     <p data-pm-slice="1 1 [&quot;div&quot;,{&quot;originalAttributes&quot;:{&quot;id&quot;:&quot;content&quot;}},&quot;section&quot;,{&quot;originalAttributes&quot;:{&quot;id&quot;:&quot;idebt&quot;,&quot;rel&quot;:&quot;schema:hasPart&quot;,&quot;resource&quot;:&quot;#idebt&quot;}},&quot;descriptionDiv&quot;,{&quot;originalAttributes&quot;:{&quot;datatype&quot;:&quot;rdf:HTML&quot;,&quot;property&quot;:&quot;schema:description&quot;}},&quot;section&quot;,{&quot;originalAttributes&quot;:{&quot;id&quot;:&quot;trust-calculation-with-idebt&quot;,&quot;rel&quot;:&quot;schema:hasPart&quot;,&quot;resource&quot;:&quot;#trust-calculation-with-idebt&quot;}},&quot;descriptionDiv&quot;,{&quot;originalAttributes&quot;:{&quot;datatype&quot;:&quot;rdf:HTML&quot;,&quot;property&quot;:&quot;schema:description&quot;}}]"> Each Registry is parameterised by a <em>setting</em> nanopublication, as we have seen above, that initiates the root of the trust graph by declaring the initially trusted agents along with the Registry's trust algorithm parameterization. Different Registry instances can declare different settings and therefore different trust roots and policies.</p>
                   </div>
-                  <p>Each Nanopub Registry derives a per-public-key trust score by running IDEBT over three nanopublication types: introductions bind agents to public keys, endorsements add trust edges between such bindings, and retractions invalidate previously declared edges.</p>
-                  <p><mark class="todo">HERE</mark> Trust propagates from the setting along endorsement edges under a maximum recursion depth <code>MAX_DEPTH</code> and a minimum-ratio cutoff <code>MIN_RATIO</code>. A trust path <code>p</code> is the central data structure: a record with a chain <code>chain(p)</code> of <code>(agent, pubkey)</code> hops ending at <code>end(p)</code>, a contribution <code>p.ratio</code> in <code>[0,1]</code>, and a flag <code>p.primary</code> that is set once the path has been expanded. We write <code>length(p) = |chain(p)| − 1</code> for the number of hops, which equals the depth at which <code>p</code> was inserted. A sentinel <code>$</code> denotes the root <code>(agent, pubkey)</code>, with the setting acting as the root endorser. The registry additionally maintains two local nanopub collections — <code>declarations</code> (also known as <em>introductions</em>) and <code>endorsements</code> — which it grows by fetching from peer registries as new keys enter the trust frontier. Because peers expose nanopublications partitioned by <code>(pubkey, type)</code>, declarations and endorsements live on distinct list resources and are pulled with two separate requests per key. The trust-edge set <code>N</code> is derived from these collections: an edge <code>((a, k), (a', k')) ∈ N</code> records that an endorsement signed by <code>(a, k)</code> references a declaration that declares the binding <code>(a', k')</code>.</p>
-                  <p>The driver is shown below. <code>IDEBT</code> reads the global <code>peers</code> and <code>setting</code> and writes its result into the global <code>paths</code>, from which the per-key scores and trust-state hash in the next subsection are derived without further peer access. Crucially, the iterative expansion bounds the input the computation consumes: declarations and endorsements signed by keys never reached on a primary path with ratio above <code>MIN_RATIO</code> are never fetched, parsed, or stored, so an unadmitted publisher imposes no input cost on any peer regardless of how much endorsement traffic they emit.</p>
+                  <p>Each Nanopub Registry derives a per-public-key trust score by running IDEBT over three nanopublication types: introductions bind agents to public keys, endorsements add trust edges between such bindings, and retractions invalidate previously declared edges. The algorithm iteratively builds a set of trust paths <code>paths</code>. <mark class="todo">HERE</mark> Each trust path <code>p</code> records a chain <code>chain(p)</code> of <code>(agent, pubkey)</code> hops with last hop <code>end(p)</code>, a ratio <code>p.ratio</code> ∈ <code>[0,1]</code>, a <code>primary</code> flag, and depth <code>length(p) = |chain(p)| − 1</code>; the sentinel <code>$</code> denotes the root, with the setting as root endorser. Each Registry maintains local sets of <em>declarations</em> (synonymous with introductions <mark class="todo">fix</mark>) and <em>endorsements</em> fetched from peers, from which the trust-edge set <code>N</code> is derived: <code>((a, k), (a', k')) ∈ N</code> iff some endorsement signed by <code>(a, k)</code> references a declaration of <code>(a', k')</code>. The iterative expansion bounds input cost: declarations and endorsements signed by keys never reached on a primary path above <code>MIN_RATIO</code> are never fetched, so an unadmitted publisher imposes no input cost on any peer regardless of how much endorsement traffic it emits.</p>
                   <pre><code>Globals:
   peers   — configured peer registries (read-only)
   setting — setting nanopublication (read-only)
@@ -223,7 +221,6 @@ IDEBT():
                 ∃ D ∈ declarations referenced by E,
                 D declares (a', k') }
     Expand(expand, N)</code></pre>
-                  <p><em>Frontier selection.</em> <code>SelectFrontier</code> retains the highest-ratio non-primary path per endpoint at the previous depth and drops anything below <code>MIN_RATIO</code>; it is purely local and triggers no peer traffic. The fetches that update <code>declarations</code>, <code>endorsements</code>, and <code>N</code> happen back in the driver between selection and expansion.</p>
                   <pre><code>SelectFrontier(d):
   expand ← ∅
   for x in { end(p) : p ∈ paths, length(p) = d, ¬p.primary }:
@@ -231,7 +228,6 @@ IDEBT():
     if p*.ratio ≥ MIN_RATIO:
       expand ← expand ∪ { p* }
   return expand</code></pre>
-                  <p><em>Path expansion.</em> <code>Expand</code> retains a fraction <code>SELF_SHARE</code> of each frontier path's ratio on the parent — which is then marked primary so it is not re-expanded — and distributes the remaining <code>(1 − SELF_SHARE)</code> across its endorsed children, splitting first by agent and then equally across that agent's endorsed public keys. Endorsements pointing to accounts already reached are skipped (mirroring the registry's <code>accounts_loading</code> dedup), enforcing the design invariant that every account is the endpoint of at most one primary path.</p>
                   <pre><code>Expand(expand, N):
   for p in expand:
     endorsed ← { (a, k) : (end(p), (a, k)) ∈ N, ¬∃ p' ∈ paths : end(p') = (a, k) }
@@ -242,7 +238,7 @@ IDEBT():
       paths  ← paths ∪ { (chain(p) · (a, k), r, ¬primary) }
     p.ratio   ← p.ratio × SELF_SHARE
     p.primary ← true</code></pre>
-                  <p><em>Tie-breaking.</em> The <code>argmax</code> in <code>SelectFrontier</code> is in general not unique on <code>p.ratio</code> alone — two non-primary paths to the same endpoint and depth could carry equal ratios — so the implementation breaks ties on the secondary key <code>sorthash = SHA-256(setting ‖ pathId)</code>, where <code>pathId</code> is a function of <code>chain(p)</code>. Under the standard assumption that SHA-256 is collision-resistant on path identifiers, <code>sorthash</code> is unique per path, and the effective lexicographic selection key <code>(p.ratio, −sorthash)</code> yields a single argmax; the same secondary key is used wherever paths are sorted by ratio.</p>
+                  <p>The <code>argmax</code> in <code>SelectFrontier</code> may have ties on <code>p.ratio</code> alone, so the implementation breaks them on a secondary key <code>sorthash = SHA-256(setting ‖ pathId)</code> with <code>pathId</code> a function of <code>chain(p)</code>; the effective lexicographic selection key <code>(p.ratio, −sorthash)</code> is used wherever paths are sorted by ratio.</p>
                 </div>
               </section>
               <section id="idebt-properties" rel="schema:hasPart" resource="#idebt-properties">
