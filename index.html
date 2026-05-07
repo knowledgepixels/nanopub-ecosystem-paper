@@ -356,7 +356,7 @@ trustStateId ← hash(canonicalSerialisation(paths))</code></pre>
                       </tr>
                     </tbody>
                   </table>
-                  <figure id="fig-depth-mass">
+                  <figure id="fig-depth-mass" class="full-width">
                     <p><img alt="Per-path depth distribution and ratio mass per depth" src="analysis/figures/depth-mass.svg" /></p>
                     <figcaption>(a) Per-path depth distribution: only 14 paths leave the root directly (one per first-hop endorsed agent-key), 505 of 772 paths terminate at depth 2, and none extend beyond depth 5. (b) Aggregated ratio mass by depth (log scale): roughly geometric decay between successive depths, consistent with the <code>SELF_SHARE</code> retention rule and the <code>MIN_RATIO</code> pruning gate.</figcaption>
                   </figure>
@@ -394,7 +394,7 @@ trustStateId ← hash(canonicalSerialisation(paths))</code></pre>
                     <figcaption><mark class="todo">Placeholder — regenerate from full four-phase runs once the type-sharded data are complete.</mark> Average query response time per phase under the 20-minute, 24-client workload, for round-robin replication and type-sharded coverage. Latency stays in the 3–5 ms band under round-robin and around 2 ms under type-sharding; no upward trend with corpus size is visible.</figcaption>
                   </figure>
                   <p>Resource utilisation tracks expectations: write-side pressure shifts from the RDF4J indices to MongoDB as the corpus grows — average MongoDB CPU rises from 58% to 92% across the four round-robin ingestion phases and average MongoDB RAM grows from 1.4 to 2.5 GiB over the same window (<a href="#fig-simulation-resources">Figure&nbsp;7</a>) — while Registry-process CPU stays under 25% throughout, suggesting that the next bottleneck at an order-of-magnitude larger corpus will be MongoDB write throughput rather than Registry-level processing.</p>
-                  <figure id="fig-simulation-resources">
+                  <figure id="fig-simulation-resources" class="full-width">
                     <p><img alt="Average per-component CPU usage and RAM reservation during ingestion across phases" src="analysis/figures/simulation-resources-ingestion.svg" /></p>
                     <figcaption><mark class="todo">Placeholder — regenerate from full four-phase runs of both configurations; drop this figure first if pressed for space.</mark> Average per-component (a) CPU usage and (b) RAM reserved during ingestion across phases, broken down by Registry, Query, RDF4J, and MongoDB instances under round-robin replication. The Mongo CPU ramp from 58% to 92% and RAM growth from 1.4 to 2.5 GiB show where write-side pressure accumulates; Registry CPU remains flat and RDF4J holds the largest working set (~5 GiB per instance) throughout.</figcaption>
                   </figure>

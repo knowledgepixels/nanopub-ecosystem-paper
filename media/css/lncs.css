@@ -1182,4 +1182,9 @@ figure img {
 display:block;
 margin-left:auto;
 margin-right:auto;
+width:75%;
+height:auto;
+}
+figure.full-width img {
+width:100%;
 }

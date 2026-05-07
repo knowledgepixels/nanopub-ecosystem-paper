@@ -51,7 +51,7 @@ mark.note::before {
  * draft annotations. */
 .hide-drafts mark.todo,
 .hide-drafts mark.note {
-  display: none;
+  display: none !important;
 }
 
 @media print {
