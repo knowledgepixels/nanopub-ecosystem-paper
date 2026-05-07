@@ -45,6 +45,15 @@ mark.note::before {
   background: #2563eb;
 }
 
+/* Toggle: add `hide-drafts` to a parent element (typically <html> or
+ * <body>) to hide all TODO and NOTE remarks without removing them from
+ * the source. Useful for previewing the paper as it would read without
+ * draft annotations. */
+.hide-drafts mark.todo,
+.hide-drafts mark.note {
+  display: none;
+}
+
 @media print {
   mark.todo,
   mark.note {
