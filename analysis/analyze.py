@@ -265,43 +265,13 @@ def plot_snapshot(stats):
     return out
 
 
-def plot_publication_volume(stats):
-    perkey = stats["_perkey_sorted"]
-    peragent = stats["_peragent_sorted"]
-
-    pk_ranks = list(range(1, len(perkey) + 1))
-    pk_counts = [n for _, n in perkey]
-    ag_ranks = list(range(1, len(peragent) + 1))
-    ag_counts = [n for _, n in peragent]
-
-    fig, ax = plt.subplots(figsize=(5.0, 2.8))
-    ax.plot(pk_ranks, pk_counts, color="#3b6fb6", lw=1.4, label=f"per pubkey ({len(perkey)})")
-    ax.plot(ag_ranks, ag_counts, color="#b6573b", lw=1.4, label=f"per agent ({len(peragent)})")
-    ax.set_xscale("log")
-    ax.set_yscale("log")
-    ax.set_xlabel("rank (ordered by descending count)")
-    ax.set_ylabel("nanopublications")
-    ax.set_title("publication volume per signer-key and per agent", fontsize=10)
-    ax.spines["top"].set_visible(False)
-    ax.spines["right"].set_visible(False)
-    ax.grid(True, which="both", linestyle=":", alpha=0.4)
-    ax.legend(frameon=False, fontsize=8, loc="upper right")
-    fig.tight_layout()
-    out = FIGS / "publication-volume.svg"
-    fig.savefig(out, format="svg", bbox_inches="tight")
-    plt.close(fig)
-    # Remove the obsolete fanout figure if still present.
-    old = FIGS / "fanout.svg"
-    if old.exists():
-        old.unlink()
-    return out
-
-
 def main():
     snap, accounts, agents, perkey_counts, events, paths, extended_flags = load()
     stats = compute(snap, accounts, agents, perkey_counts, events, paths, extended_flags)
     plot_snapshot(stats)
-    plot_publication_volume(stats)
+    for stale in (FIGS / "publication-volume.svg", FIGS / "fanout.svg"):
+        if stale.exists():
+            stale.unlink()
     # Strip private (sortable list) fields before persisting stats.
     persist = {k: v for k, v in stats.items() if not k.startswith("_")}
     (DATA / "stats.json").write_text(json.dumps(persist, indent=2) + "\n")
