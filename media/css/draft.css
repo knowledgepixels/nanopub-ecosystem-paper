@@ -54,6 +54,14 @@ mark.note::before {
   display: none !important;
 }
 
+/* Toggle: add `anonymize` to a parent element (typically <html> or
+ * <body>) to hide authors, affiliations, and acknowledgements for
+ * double-blind review submission. */
+.anonymize #authors,
+.anonymize #acknowledgements {
+  display: none !important;
+}
+
 @media print {
   mark.todo,
   mark.note {
