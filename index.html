@@ -34,12 +34,15 @@
             <li id="author-email-a"><sup>a</sup><a about="#Tobias-Kuhn" href="mailto:tobias@knowledgepixels.com" rel="schema:email">tobias@knowledgepixels.com</a></li>
           </ul>
         </div>
+        <dl id="document-modified">
+          <dt>Modified</dt>
+          <dd><time content="2026-05-08T11:06:13.017Z" datatype="xsd:dateTime" datetime="2026-05-08T11:06:13.017Z" property="schema:dateModified">5/8/2026</time></dd>
+        </dl>
         <div id="content">
           <section id="abstract">
             <h2>Abstract</h2>
             <div datatype="rdf:HTML" property="schema:abstract">
-              <p>
-                Semantic technologies and models have matured and become very powerful tools to increase the power and accuracy of recent AI approaches.  However, we currently lack channels where semantically structured knowledge can be reliably published and queried, both by humans as well as AI agents. Here we show how this gap can be filled by a global ecosystem that aligns with the original Semantic Web vision with respect to openness, decentralization, and formal semantics, but also targets trust and redundancy. Our approach is based on the concept and technology of nanopublications with content-addressed identifiers and a layered peer-to-peer network of publishing services, query services, and user applications. It applies a trust algorithm from links that are published as nanopublications themselves. We present a novel trust propagation algorithm IDEBT and prove its properties of being robust, efficient to compute, and reproducible. Publishing and query layers of the architecture are sliced by public keys as well as nanopublication types for horizontal scaling.   We evaluate the ecosystem on a multi-node test deployment running a synthetic publish/query workload under two coverage configurations, complemented by a descriptive analysis of the live deployed trust network.                 The live network exhibits the expected bounded-depth and ratio-conservation behaviour, type-sharded coverage preserves per-Registry ingestion and lifts cluster throughput, so the network is not limited by the capacity of any one operator, and query latency stays in the millisecond range as the corpus scales.                 Our work shows that a such a decentralized network of services based on nanopublications has the capacity and potential to serve as a universal and globally integrated knowledge sharing platform.</p>
+              <p>                 Semantic technologies and models have matured and become very powerful tools to increase the power and accuracy of recent AI approaches.  However, we currently lack channels where semantically structured knowledge can be reliably published and queried, both by humans as well as AI agents. Here we show how this gap can be filled by a global ecosystem that aligns with the original Semantic Web vision with respect to openness, decentralization, and formal semantics, but also targets trust and redundancy. Our approach is based on the concept and technology of nanopublications with content-addressed identifiers and a layered peer-to-peer network of publishing services, query services, and user applications. It applies a trust algorithm from links that are published as nanopublications themselves. We present a novel trust propagation algorithm IDEBT and prove its properties of being robust, efficient to compute, and reproducible. Publishing and query layers of the architecture are sliced by public keys as well as nanopublication types for horizontal scaling.   We evaluate the ecosystem on a multi-node test deployment running a synthetic publish/query workload under two coverage configurations, complemented by a descriptive analysis of the live deployed trust network.                 The live network exhibits the expected bounded-depth and ratio-conservation behaviour, type-sharded coverage preserves per-Registry ingestion and lifts cluster throughput, so the network is not limited by the capacity of any one operator, and query latency stays in the millisecond range as the corpus scales.                 Our work shows that a such a decentralized network of services based on nanopublications has the capacity and potential to serve as a universal and globally integrated knowledge sharing platform.</p>
             </div>
           </section>
           <section id="keywords">
@@ -100,16 +103,7 @@
                   <p>Three core attributes determine how the Registry stores and organizes its nanopublications: the <em>public key</em> used to sign, the <em>agent</em> that controls that key, and the <em>types</em> each nanopublication declares about itself. Every accepted nanopublication moreover carries a signature (currently using RSA) and the respective full public key, which the Registry in hashed form uses as account identifier. Agents are identified by their URIs (typically ORCIDs) and are bound to their keys through <em>introduction nanopublications</em>.</p>
                   <p>Each nanopublication further declares a set of types (URIs) that place it in a functional or domain class (biodiversity, retraction, introduction, endorsement, template, and so on). A Registry instance has a configurable <em>coverage</em>, defined as a set of types denoting the kind of nanopublications it accepts and replicates.</p>
                   <p>Three nanopublication types are crucial for the trust layer: a <em>setting</em> nanopublication parameterises a Registry, <em>introduction</em> nanopublications bind agent identifiers to public keys, and <em>endorsement</em> nanopublications add trust edges between such bindings. These three types are always loaded by a Registry, irrespective of its configured coverage. A fourth type, <em>indexes</em>, groups nanopublications into named collections referenced from elsewhere — for instance, the seed agents listed by a setting are themselves grouped through such an index. Simplified examples of all four in TriG notation are shown below.</p>
-                  <pre><code>@prefix this:  &lt;…this nanopub&gt; .
-@prefix sub:   &lt;…this nanopub/&gt; .
-@prefix np:    &lt;http://www.nanopub.org/nschema#&gt; .
-@prefix npx:   &lt;http://purl.org/nanopub/x/&gt; .
-@prefix dct:   &lt;http://purl.org/dc/terms/&gt; .
-@prefix xsd:   &lt;http://www.w3.org/2001/XMLSchema#&gt; .
-@prefix orcid: &lt;https://orcid.org/&gt; .
-@prefix prov:  &lt;http://www.w3.org/ns/prov#&gt; .
-
-# Common head graph (identical across types):
+                  <pre><code># Common head graph (identical across types):
 sub:Head { this: a np:Nanopublication ;
            np:hasAssertion       sub:assertion ;
            np:hasProvenance      sub:provenance ;
