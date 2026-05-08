@@ -1,15 +1,12 @@
 #!/usr/bin/env python3
-"""Generate preliminary simulation-study figures from the partial run.
+"""Generate simulation-study figures.
 
-Source data: simulation-result-files-temp/Stats checkpoints.xlsx
+Source data: analysis/network_simulation_results/Stats checkpoints.xlsx
 (round-robin = experiment 1, type-sharded = experiment 2). Values are
-inlined here so the script runs from a clean checkout. Re-export and
-update the constants once phases 3 and 4 of the type-sharded run
-complete, then rerun this script to regenerate the SVGs.
+inlined here so the script runs from a clean checkout.
 
-Outputs:
-  analysis/figures/simulation-throughput.svg
-  analysis/figures/simulation-resources-ingestion.svg
+Output:
+  analysis/figures/simulation-results.svg
 """
 
 from pathlib import Path
@@ -60,6 +57,20 @@ ts_ram_query    = [0.69, 0.82, 0.34, 0.63]
 ts_ram_rdf4j    = [5.37, 6.86, 3.14, 5.40]
 ts_ram_mongo    = [1.44, 1.52, 1.80, 1.77]
 
+# Query workload: 20 minutes (1200 s), 24 concurrent clients.
+# `ok` is the count of successful queries; failures and timeouts are
+# zero in both runs and not plotted.
+QUERY_SECONDS = 20 * 60
+rr_query_ok       = [5_713_992, 7_066_372, 4_995_692, 6_969_774]
+rr_query_lat_us   = [4272, 3251, 5049, 3325]
+ts_query_ok       = [8_521_250, 8_215_237, 8_197_059, 8_180_749]
+ts_query_lat_us   = [2132, 2345, 2302, 2329]
+
+rr_qps      = [n / QUERY_SECONDS for n in rr_query_ok]   # queries / s
+ts_qps      = [n / QUERY_SECONDS for n in ts_query_ok]
+rr_lat_ms   = [u / 1000.0 for u in rr_query_lat_us]      # microseconds → ms
+ts_lat_ms   = [u / 1000.0 for u in ts_query_lat_us]
+
 
 def _style(ax):
     ax.spines["top"].set_visible(False)
@@ -84,32 +95,77 @@ def plot_results():
     })
 
     fig = plt.figure(figsize=(11.0, 4.0))
-    # Explicit positions: (a) takes full plotting height on the left;
-    # (b) and (c) are shorter and sit on the upper right; the empty band
-    # below them is reserved for the shared legend so that
-    # (b) + (c) + legend together align with (a)'s height.
-    ax_thr = fig.add_axes((0.07, 0.14, 0.30, 0.78))
-    ax_cpu = fig.add_axes((0.45, 0.30, 0.25, 0.62))
-    ax_ram = fig.add_axes((0.73, 0.30, 0.25, 0.62))
+    # Explicit positions: (a) is split into two stacked subpanels on the
+    # left sharing the phase axis — (a-i) ingestion throughput on top,
+    # (a-ii) query throughput below with a twin axis for mean latency.
+    # (b) and (c) sit on the upper right; the empty band below them is
+    # reserved for the shared legend so that (b) + (c) + legend together
+    # align with (a)'s total height.
+    ax_ing = fig.add_axes((0.07, 0.55, 0.40, 0.37))
+    ax_qry = fig.add_axes((0.07, 0.14, 0.40, 0.37))
+    ax_cpu = fig.add_axes((0.55, 0.30, 0.18, 0.62))
+    ax_ram = fig.add_axes((0.80, 0.30, 0.18, 0.62))
 
-    # ----- (a) Throughput -----
     x_phase = np.array(PHASES)
-    ax_thr.plot(x_phase, rr_per_registry, marker="o", color="#1f77b4",
+
+    # ----- (a-i) Ingestion throughput -----
+    ax_ing.plot(x_phase, rr_per_registry, marker="o", color="#1f77b4",
                 label="Round-robin per-Registry (= cluster)")
-    ax_thr.plot(x_phase, ts_per_registry, marker="s", color="#2ca02c",
+    ax_ing.plot(x_phase, ts_per_registry, marker="s", color="#2ca02c",
                 label="Type-sharded per-Registry")
-    ax_thr.plot(x_phase, ts_cluster, marker="^", color="#2ca02c", linestyle="--",
+    ax_ing.plot(x_phase, ts_cluster, marker="^", color="#2ca02c", linestyle="--",
                 label="Type-sharded cluster")
-    ax_thr.set_xticks(PHASES)
-    ax_thr.set_xlabel("Phase (each adds 100k nanopublications)")
-    ax_thr.set_ylabel("Ingestion throughput (np/s)")
-    ax_thr.set_ylim(0, 30)
-    ax_thr.set_title("(a) Throughput")
-    ax_thr.legend(loc="lower left", frameon=False, fontsize=9)
-    _style(ax_thr)
+    ax_ing.set_xticks(PHASES)
+    ax_ing.set_xticklabels([])
+    ax_ing.set_ylabel("Ingestion (np/s)")
+    ax_ing.set_ylim(0, 30)
+    ax_ing.set_title("(a) Throughput")
+    ax_ing.legend(loc="lower left", frameon=False, fontsize=8)
+    _style(ax_ing)
+
+    # ----- (a-ii) Query throughput + mean latency -----
+    ax_qry.plot(x_phase, rr_qps, marker="o", color="#1f77b4",
+                label="Round-robin")
+    ax_qry.plot(x_phase, ts_qps, marker="s", color="#2ca02c",
+                label="Type-sharded")
+    ax_qry.set_xticks(PHASES)
+    ax_qry.set_xlabel("Phase (each adds 100k nanopublications)")
+    ax_qry.set_ylabel("Queries/s")
+    ax_qry.set_ylim(0, 9500)
+    _style(ax_qry)
+
+    ax_lat = ax_qry.twinx()
+    ax_lat.plot(x_phase, rr_lat_ms, marker="o", color="#1f77b4",
+                linestyle=":", linewidth=1.0, alpha=0.55, markersize=4,
+                label="Round-robin latency")
+    ax_lat.plot(x_phase, ts_lat_ms, marker="s", color="#2ca02c",
+                linestyle=":", linewidth=1.0, alpha=0.55, markersize=4,
+                label="Type-sharded latency")
+    ax_lat.set_ylabel("Mean latency (ms)", fontsize=9)
+    ax_lat.set_ylim(0, 7)
+    ax_lat.spines["top"].set_visible(False)
+
+    # Two-column legend at lower-left: column 1 = solid (throughput),
+    # column 2 = dotted (mean latency, right axis). matplotlib fills
+    # column-major top-to-bottom, so order handles as [col1-top,
+    # col1-bottom, col2-top, col2-bottom].
+    from matplotlib.lines import Line2D
+    qry_handles = [
+        Line2D([0], [0], color="#1f77b4", marker="o", label="Round-robin"),
+        Line2D([0], [0], color="#2ca02c", marker="s", label="Type-sharded"),
+        Line2D([0], [0], color="#1f77b4", marker="o", linestyle=":",
+               linewidth=1.0, alpha=0.55, markersize=4,
+               label="Round-robin latency"),
+        Line2D([0], [0], color="#2ca02c", marker="s", linestyle=":",
+               linewidth=1.0, alpha=0.55, markersize=4,
+               label="Type-sharded latency"),
+    ]
+    ax_qry.legend(handles=qry_handles, loc="lower left", ncol=2,
+                  frameon=False, fontsize=8, columnspacing=1.2,
+                  handlelength=1.6)
 
     # ----- Stacked-bar helpers, shared by (b) and (c) -----
-    groups = ["Nanopub Registry\n(app + MongoDB)", "Nanopub Query\n(app + RDF4J)"]
+    groups = ["Nanopub\nRegistry", "Nanopub\nQuery"]
     x = np.arange(len(groups))
     width = 0.36
 
