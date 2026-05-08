@@ -13,7 +13,7 @@
   <body about="" class="anonymize" data-feedly-mini="yes" prefix="rdf: http://www.w3.org/1999/02/22-rdf-syntax-ns# rdfs: http://www.w3.org/2000/01/rdf-schema# owl: http://www.w3.org/2002/07/owl# xsd: http://www.w3.org/2001/XMLSchema# rdfa: http://www.w3.org/ns/rdfa# dcterms: http://purl.org/dc/terms/ dctypes: http://purl.org/dc/dcmitype/ foaf: http://xmlns.com/foaf/0.1/ pimspace: http://www.w3.org/ns/pim/space# skos: http://www.w3.org/2004/02/skos/core# prov: http://www.w3.org/ns/prov# mem: http://mementoweb.org/ns# qb: http://purl.org/linked-data/cube# schema: http://schema.org/ void: http://rdfs.org/ns/void# rsa: http://www.w3.org/ns/auth/rsa# cert: http://www.w3.org/ns/auth/cert# wgs: http://www.w3.org/2003/01/geo/wgs84_pos# bibo: http://purl.org/ontology/bibo/ sioc: http://rdfs.org/sioc/ns# doap: http://usefulinc.com/ns/doap# dbr: http://dbpedia.org/resource/ dbp: http://dbpedia.org/property/ sio: http://semanticscience.org/resource/ opmw: http://www.opmw.org/ontology/ deo: http://purl.org/spar/deo/ doco: http://purl.org/spar/doco/ cito: http://purl.org/spar/cito/ fabio: http://purl.org/spar/fabio/ oa: http://www.w3.org/ns/oa# as: https://www.w3.org/ns/activitystreams# ldp: http://www.w3.org/ns/ldp# solid: http://www.w3.org/ns/solid/terms# acl: http://www.w3.org/ns/auth/acl# earl: http://www.w3.org/ns/earl# spec: http://www.w3.org/ns/spec# odrl: http://www.w3.org/ns/odrl/2/ dio: https://w3id.org/dio# rel: https://www.w3.org/ns/iana/link-relations/relation# dcat: http://www.w3.org/ns/dcat csvw: http://www.w3.org/ns/csvw# dpv: https://w3id.org/dpv# risk: https://w3id.org/dpv/risk#" typeof="schema:CreativeWork prov:Entity">
     <main>
       <article about="" dir="auto" typeof="schema:ScholarlyArticle">
-        <h1 property="schema:name">A Robust Decentralized Infrastructure for Trust-Aware Open Knowledge Sharing <span class="draft-tag">[DRAFT]</span></h1>
+        <h1 property="schema:name">A Robust Decentralized Infrastructure for Trust-Aware Open Knowledge Sharing</h1>
         <div id="authors">
           <dl id="author-name">
             <dt>Authors</dt>
@@ -46,14 +46,7 @@
             </div>
           </section>
           <section id="keywords">
-            <h2>Keywords</h2>
-            <ul>
-              <li property="schema:keywords">Nanopublications</li>
-              <li property="schema:keywords">Knowledge Graphs</li>
-              <li property="schema:keywords">FAIR Data</li>
-              <li property="schema:keywords">Scholarly Communication</li>
-              <li property="schema:keywords">Decentralized Infrastructure</li>
-            </ul>
+            <p><mark class="todo">Keywords: Nanopublications, Knowledge Graphs, FAIR Data, Scholarly Communication, Decentralized Infrastructure</mark></p>
           </section>
           <section id="introduction" rel="schema:hasPart" resource="#introduction">
             <h2 property="schema:name">Introduction</h2>
@@ -321,10 +314,9 @@ trustStateId ← hash(canonicalSerialisation(paths))</code></pre>
           <section id="conclusion" rel="schema:hasPart" resource="#conclusion">
             <h2 property="schema:name">Conclusion</h2>
             <div datatype="rdf:HTML" property="schema:description">
-              <p>We have presented a second-generation nanopublication ecosystem that takes the Knowledge Space vision from a design sketch to a running, openly accessible infrastructure. The architecture establishes a decentralized ecosystem of Nanopub Registry and Nanopub Query services, on which user applications like Nanodash can build upon. It uses nanopublications universally for signed content, identity bindings, and trust assertions, rather than splitting them across separate identity, content, and moderation protocols.</p>
-              <p>The main conceptual contribution is <em>IDEBT</em>, a seed-rooted, decay-bounded, deterministic trust algorithm that operates over retractable identity-to-key and endorsement nanopublications. Because IDEBT is deterministic and re-runnable, the resulting trust state is itself a content-addressable artefact: peers and services can mirror it, build upon it, and always double-check by re-running it themselves. Together with the federated registry layer, which provides verifiable, transparently replicated storage of signed RDF without a global consensus ledger, this yields a combination of properties that, to our knowledge, no single existing system offers.</p>
-              <p>Our evaluation on a multi-node deployment under a synthetic publish/query workload, combined with a descriptive analysis of the live network snapshot, demonstrates the architecture's viability and its scaling behaviour, and shows the existing non-trivial trust graph already carried by the live network.</p>
-              <p>Taken together, these results indicate that a decentralized network of nanopublication services has the capacity to serve as a universal ecosystem for publishing and querying semantically structured knowledge with per-statement provenance and without delegating trust judgements to a central platform.</p>
+              <p>We have presented a second-generation nanopublication ecosystem that takes the Knowledge Space vision from a design sketch to a running, openly accessible infrastructure, using nanopublications universally for signed content, identity bindings, and trust assertions.</p>
+              <p>The main conceptual contribution is <em>IDEBT</em>, a seed-rooted, decay-bounded, deterministic trust algorithm over retractable identity-to-key and endorsement nanopublications. Because IDEBT is deterministic and re-runnable, the resulting trust state is itself a content-addressable artefact that peers and services can mirror, build upon, and always double-check by re-running.</p>
+              <p>Our evaluation on a multi-node deployment combined with a descriptive analysis of the live network snapshot demonstrates the architecture's viability and scaling behaviour, indicating that a decentralized network of nanopublication services has the capacity to serve as a universal ecosystem for publishing and querying semantically structured knowledge with per-statement provenance and without delegating trust judgements to a central platform.</p>
               <section id="acknowledgements" rel="schema:hasPart" resource="#acknowledgements">
                 <h4 property="schema:name">Acknowledgements</h4>
                 <div datatype="rdf:HTML" property="schema:description">
@@ -336,7 +328,7 @@ trustStateId ← hash(canonicalSerialisation(paths))</code></pre>
           <section id="supplemental-material-statement" rel="schema:hasPart" resource="#supplemental-material-statement">
             <h2 property="schema:name">Supplemental Material Statement</h2>
             <div datatype="rdf:HTML" property="schema:description">
-              <p><mark class="todo">list code, datasets, and resources with anonymous links (e.g., Zenodo, Anonymous GitHub) for review. Replace with canonical DOIs in the camera-ready.</mark></p>
+              <p>Anonymous source repositories: <a href="https://anonymous.4open.science/r/nanopub-registry-6625/">Nanopub Registry</a>, <a href="https://anonymous.4open.science/r/nanopub-query-33D1/">Nanopub Query</a>, <a href="https://anonymous.4open.science/r/nanopub-ecosystem-test-infra-58CC/">test infrastructure</a>, and <a href="https://anonymous.4open.science/r/nanopub-ecosystem-paper-analysis-C6B2/README.md">paper analysis</a>.</p>
             </div>
           </section>
           <section id="use-of-generative-ai" rel="schema:hasPart" resource="#use-of-generative-ai">
