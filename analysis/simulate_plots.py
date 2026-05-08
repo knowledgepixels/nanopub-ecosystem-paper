@@ -103,8 +103,8 @@ def plot_results():
     # align with (a)'s total height.
     ax_ing = fig.add_axes((0.07, 0.55, 0.40, 0.37))
     ax_qry = fig.add_axes((0.07, 0.14, 0.40, 0.37))
-    ax_cpu = fig.add_axes((0.55, 0.30, 0.18, 0.62))
-    ax_ram = fig.add_axes((0.80, 0.30, 0.18, 0.62))
+    ax_cpu = fig.add_axes((0.60, 0.30, 0.16, 0.62))
+    ax_ram = fig.add_axes((0.82, 0.30, 0.16, 0.62))
 
     x_phase = np.array(PHASES)
 
@@ -151,8 +151,10 @@ def plot_results():
     # col1-bottom, col2-top, col2-bottom].
     from matplotlib.lines import Line2D
     qry_handles = [
-        Line2D([0], [0], color="#1f77b4", marker="o", label="Round-robin"),
-        Line2D([0], [0], color="#2ca02c", marker="s", label="Type-sharded"),
+        Line2D([0], [0], color="#1f77b4", marker="o",
+               label="Round-robin queries/s"),
+        Line2D([0], [0], color="#2ca02c", marker="s",
+               label="Type-sharded queries/s"),
         Line2D([0], [0], color="#1f77b4", marker="o", linestyle=":",
                linewidth=1.0, alpha=0.55, markersize=4,
                label="Round-robin latency"),
