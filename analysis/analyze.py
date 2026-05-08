@@ -9,8 +9,8 @@ Inputs (read from analysis/data/, produced by fetch_snapshot.py):
 
 Outputs:
   analysis/data/stats.json         computed numbers used in the paper
-  analysis/figures/depth-mass.svg  two-panel: per-path depth and ratio mass per depth
-  analysis/figures/fanout.svg      endorsement fan-out distribution per signer-key
+  analysis/figures/snapshot.svg    three-panel: depth distribution, ratio mass
+                                   per depth, and cumulative growth over time
 """
 
 import json
@@ -224,11 +224,14 @@ def compute(snap, accounts, agents, perkey_counts, events, paths, extended_flags
 def plot_snapshot(stats):
     depths = sorted(stats["depth_counts"].keys())
     counts = [stats["depth_counts"][d] for d in depths]
+    mass_depths = sorted(stats["depth_mass"].keys())
+    mass = [stats["depth_mass"][d] for d in mass_depths]
     intro_ts = [datetime.fromisoformat(s) for s in stats["_intro_ts"]]
     endor_ts = [datetime.fromisoformat(s) for s in stats["_endor_ts"]]
 
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(8.0, 2.8))
+    fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(11.0, 2.8))
 
+    # (a) Per-path depth distribution
     ax1.bar(depths, counts, color="#3b6fb6", width=0.7)
     for d, c in zip(depths, counts):
         ax1.text(d, c, str(c), ha="center", va="bottom", fontsize=8)
@@ -240,20 +243,33 @@ def plot_snapshot(stats):
     ax1.spines["top"].set_visible(False)
     ax1.spines["right"].set_visible(False)
 
-    if intro_ts:
-        ax2.plot(intro_ts, range(1, len(intro_ts) + 1), color="#3b6fb6",
-                 lw=1.6, label=f"introductions ({len(intro_ts)})")
-    if endor_ts:
-        ax2.plot(endor_ts, range(1, len(endor_ts) + 1), color="#b6573b",
-                 lw=1.6, label=f"endorsements ({len(endor_ts)})")
-    ax2.set_xlabel("creation time (UTC)")
-    ax2.set_ylabel("cumulative count")
-    ax2.set_title("(b) cumulative growth", fontsize=10)
-    ax2.legend(frameon=False, fontsize=8, loc="upper left")
+    # (b) Ratio mass per depth (log scale)
+    ax2.bar(mass_depths, mass, color="#b6573b", width=0.7)
+    ax2.set_yscale("log")
+    for d, m in zip(mass_depths, mass):
+        ax2.text(d, m, f"{m:.2g}", ha="center", va="bottom", fontsize=8)
+    ax2.set_xlabel("path depth (hops from root)")
+    ax2.set_ylabel("aggregated ratio mass (log)")
+    ax2.set_title("(b) ratio mass per depth", fontsize=10)
+    ax2.set_xticks(mass_depths)
     ax2.spines["top"].set_visible(False)
     ax2.spines["right"].set_visible(False)
-    ax2.xaxis.set_major_locator(mdates.YearLocator())
-    ax2.xaxis.set_major_formatter(mdates.DateFormatter("%Y"))
+
+    # (c) Cumulative growth of declarations and endorsements
+    if intro_ts:
+        ax3.plot(intro_ts, range(1, len(intro_ts) + 1), color="#3b6fb6",
+                 lw=1.6, label=f"declarations ({len(intro_ts)})")
+    if endor_ts:
+        ax3.plot(endor_ts, range(1, len(endor_ts) + 1), color="#b6573b",
+                 lw=1.6, label=f"endorsements ({len(endor_ts)})")
+    ax3.set_xlabel("creation time")
+    ax3.set_ylabel("cumulative count")
+    ax3.set_title("(c) cumulative growth", fontsize=10)
+    ax3.legend(frameon=False, fontsize=8, loc="upper left")
+    ax3.spines["top"].set_visible(False)
+    ax3.spines["right"].set_visible(False)
+    ax3.xaxis.set_major_locator(mdates.YearLocator())
+    ax3.xaxis.set_major_formatter(mdates.DateFormatter("%Y"))
 
     fig.tight_layout()
     out = FIGS / "snapshot.svg"
