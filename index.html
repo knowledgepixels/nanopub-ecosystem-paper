@@ -16,7 +16,7 @@
         <h1 property="schema:name">A Robust Decentralized Infrastructure for Trust-Aware Open Knowledge Sharing <span class="draft-tag">[DRAFT]</span></h1>
         <dl id="document-modified">
           <dt>Modified</dt>
-          <dd><time content="2026-05-08T08:36:01.946Z" datatype="xsd:dateTime" datetime="2026-05-08T08:36:01.946Z" property="schema:dateModified">5/8/2026</time></dd>
+          <dd><time content="2026-05-08T08:54:46.695Z" datatype="xsd:dateTime" datetime="2026-05-08T08:54:46.695Z" property="schema:dateModified">5/8/2026</time></dd>
         </dl>
         <div id="authors">
           <dl id="author-name">
@@ -285,7 +285,7 @@ trustStateId ← hash(canonicalSerialisation(paths))</code></pre>
           <section id="evaluation" rel="schema:hasPart" resource="#evaluation">
             <h2 property="schema:name">Evaluation</h2>
             <div datatype="rdf:HTML" property="schema:description">
-              <p>The evaluations described here characterise the trust graph produced by IDEBT on the live deployed ecosystem, and to measure the architecture's behaviour under controlled, repeatable load.</p>
+              <p>The evaluations described here characterise <mark class="todo">use American spelling everywhere</mark> the trust graph produced by IDEBT on the live deployed ecosystem, and to measure the architecture's behaviour under controlled, repeatable load.</p>
               <section id="descriptive-analysis-of-network-snapshot" rel="schema:hasPart" resource="#descriptive-analysis-of-network-snapshot">
                 <h3 property="schema:name">Descriptive analysis of network snapshot</h3>
                 <div datatype="rdf:HTML" property="schema:description">
@@ -308,7 +308,9 @@ trustStateId ← hash(canonicalSerialisation(paths))</code></pre>
               <section id="network-simulation-results" rel="schema:hasPart" resource="#network-simulation-results">
                 <h3 property="schema:name">Network simulation results</h3>
                 <div datatype="rdf:HTML" property="schema:description">
-                  <p>Per-Registry ingestion capacity is preserved under sharding, and cluster throughput scales accordingly. Type-sharding does not slow the per-Registry ingestion rate: each Registry ingests at roughly the same rate under both configurations across all four phases. Because type-sharded coverage halves what each Registry has to write, the cluster as a whole ingests at an essentially constant ≈1.5× lift over round-robin replication across all four phases (<a href="#fig-simulation-results">Figure 4(a, top)</a>). For a decentralized deployment, this means an open community can roughly double the corpus the network is able to absorb simply by partitioning type coverage across the participating Registry operators, without asking any single operator to do more work. The per-Registry rate falls by ≈28% as the corpus grows fourfold under either configuration, so the architecture's scaling lever is the number of Registries covering each type, not what each individual Registry can absorb.</p>
+                  <div datatype="rdf:HTML" property="schema:description">
+                    <p data-pm-slice="1 1 [&quot;div&quot;,{&quot;originalAttributes&quot;:{&quot;id&quot;:&quot;content&quot;}},&quot;section&quot;,{&quot;originalAttributes&quot;:{&quot;id&quot;:&quot;evaluation&quot;,&quot;rel&quot;:&quot;schema:hasPart&quot;,&quot;resource&quot;:&quot;#evaluation&quot;}},&quot;descriptionDiv&quot;,{&quot;originalAttributes&quot;:{&quot;datatype&quot;:&quot;rdf:HTML&quot;,&quot;property&quot;:&quot;schema:description&quot;}},&quot;section&quot;,{&quot;originalAttributes&quot;:{&quot;id&quot;:&quot;network-simulation-results&quot;,&quot;rel&quot;:&quot;schema:hasPart&quot;,&quot;resource&quot;:&quot;#network-simulation-results&quot;}},&quot;descriptionDiv&quot;,{&quot;originalAttributes&quot;:{&quot;datatype&quot;:&quot;rdf:HTML&quot;,&quot;property&quot;:&quot;schema:description&quot;}}]"><a href="#fig-simulation-results">Figure 4</a> shows the main results. They show that per-Registry ingestion capacity is preserved under type-based sharding, and cluster throughput scales accordingly. Type-sharding does not slow the per-Registry ingestion rate: each Registry ingests at roughly the same rate under both configurations across all four phases. Because type-sharded coverage halves what each Registry has to write, the cluster as a whole ingests at an essentially constant ≈1.5× lift over round-robin replication across all four phases, as show in the top part of panel (a). For a decentralized deployment, this means an open community can roughly double the corpus the network is able to absorb simply by partitioning type coverage across the participating Registry operators, without asking any single operator to do more work. The per-Registry rate falls by ≈28% as the corpus grows fourfold under either configuration, so the architecture's scaling lever is the number of Registries covering each type, not what each individual Registry can absorb.</p>
+                  </div>
                   <figure class="full-width" id="fig-simulation-results">
                     <p><img alt="Ingestion and query throughput across phases, query mean latency, and per-pod CPU and RAM during ingestion" src="analysis/figures/simulation-results.svg" /><img alt="" class="ProseMirror-separator" /></p>
                     <figcaption>(a, top) Ingestion throughput per Registry and cluster across phases. (a, bottom) Cluster query throughput (left axis) and mean response time (right axis, dotted) over the 20-minute query workload. (b) CPU and (c) RAM during ingestion, averaged across phases, with each pod stacking its app process and storage backend.</figcaption>
