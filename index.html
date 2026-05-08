@@ -16,7 +16,7 @@
         <h1 property="schema:name">A Robust Decentralized Infrastructure for Trust-Aware Open Knowledge Sharing <span class="draft-tag">[DRAFT]</span></h1>
         <dl id="document-modified">
           <dt>Modified</dt>
-          <dd><time content="2026-05-08T07:48:59.222Z" datatype="xsd:dateTime" datetime="2026-05-08T07:48:59.222Z" property="schema:dateModified">5/8/2026</time></dd>
+          <dd><time content="2026-05-08T08:01:32.585Z" datatype="xsd:dateTime" datetime="2026-05-08T08:01:32.585Z" property="schema:dateModified">5/8/2026</time></dd>
         </dl>
         <div id="authors">
           <dl id="author-name">
@@ -73,8 +73,8 @@
               </ul>
             </div>
           </section>
-          <section id="background-and-related-work" rel="schema:hasPart" resource="#background-and-related-work">
-            <h2 property="schema:name">Background and Related Work</h2>
+          <section id="background" rel="schema:hasPart" resource="#background">
+            <h2 property="schema:name">Background</h2>
             <div datatype="rdf:HTML" property="schema:description">
               <p>                 Nanopublications were first introduced for capturing indivual scientific claims [<a class="ref" href="#ref-8">8</a>,<a class="ref" href="#ref-2">2</a>], and later broadened to capture any kind of formally structured information entity [<a class="ref" href="#ref-3">3</a>,<a class="ref" href="#ref-4">4</a>]. Structurally, each nanopublication is a small bundle of named RDF graphs that packages an assertion together with its provenance and publication metadata into a single, self-contained, citable unit. They have been applied for use cases such as gene–disease relations [<a class="ref" href="#ref-9">9</a>], drug–drug interaction [<a class="ref" href="#ref-1">1</a>], biological pathways [<a class="ref" href="#ref-5">5</a>], biotic interactions [<a class="ref" href="#ref-5">5</a>], FAIR computational workflows [<a class="ref" href="#ref-24">24</a>], scholarly micro-contributions and open peer review [<a class="ref" href="#ref-25">25</a>], linguistic corpora [<a class="ref" href="#ref-26">26</a>], and historical period gazetteers [<a class="ref" href="#ref-27">27</a>]. Beyond specific use cases, nanopublications have also been studied and deployed as concrete implementations of FAIR Digital Objects [<a class="ref" href="#ref-36">36</a>,<a class="ref" href="#ref-37">37</a>]. Identity, verifiability, and immutability of nanopublications are addressed by Trusty URIs [<a class="ref" href="#ref-7">7</a>], which embed a content-derived cryptographic hash into the URI itself so that every reference and every retrieval is self-verifying. Collections of nanopublications can be referenced through  indexes [<a class="ref" href="#ref-39">39</a>], which are themselves nanopublications. A first generation of decentralized nanopublication services [<a class="ref" href="#ref-6">6</a>] built an open network of peer-replicating publishing servers that accept nanopublications, allow them to be cryptographically signed, store them as a single flat per-server collection, and expose them through  HTTP endpoints.</p>
               <p>As complementary technology, there exist a number of protocols and platforms for publishing and querying Linked Data over HTTP. The W3C Linked Data Platform [<a class="ref" href="#ref-28">28</a>] standardises read–write RESTful access to RDF resources; Solid [<a class="ref" href="#ref-29">29</a>] builds per-user personal datastores on top of it, and the FAIR Data Point [<a class="ref" href="#ref-33">33</a>] supports the well-defined publication of FAIR metadata. On the querying side, Triple Pattern Fragments [<a class="ref" href="#ref-30">30</a>] reduce server cost by shifting more work to clients, and Comunica [<a class="ref" href="#ref-31">31</a>] generalises this idea into a modular Linked Data federation engine.</p>
@@ -256,21 +256,18 @@ IDEBT():
                   <p><em>Proof.</em> The initial state (<code>paths</code>, <code>declarations</code>, <code>N</code>) is a function of <code>setting</code> alone. Each iteration applies two operations. (i) <code>Expand</code> adds, for each <code>(a, k) ∈ endorsed</code>, a child whose ratio is fixed by the set cardinalities <code>n<sub>agents</sub></code> and <code>n<sub>keys</sub></code>; the resulting <code>paths</code> set is therefore invariant under iteration order. (ii) <code>SelectFrontier</code>'s <code>argmax</code> is unique under the lexicographic tie-break introduced after <code>Expand</code> above, since <code>sorthash</code> is unique per path. Both operations are deterministic in <code>(setting, peers)</code>, and so is the final <code>paths</code> set. ∎ Lemma 3 is what makes the trust state itself a content-addressable artefact: the trust-state hash defined in the next subsection is identical across Registries that share a setting and have observed the same network, so downstream Query services mirror trust by hash rather than by recomputation.</p>
                 </div>
               </section>
-              <section id="idebt10" rel="schema:hasPart" resource="#idebt10">
-                <h3 property="schema:name">IDEBT10</h3>
+              <section id="idebt10-and-trust-based-scoring" rel="schema:hasPart" resource="#idebt10-and-trust-based-scoring">
+                <h3 property="schema:name">IDEBT10 and Trust-based Scoring</h3>
                 <div datatype="rdf:HTML" property="schema:description">
-                  <p>The deployed Nanopub Registry instantiates <code>IDEBT</code> with the constants below; we refer to this configuration as <em>IDEBT10</em> after its depth bound. The values reflect the current operational policy and can be revised as the network grows.</p>
+                  <p>Nanopub Registry currently instantiates <code>IDEBT</code> with these constants, and we call this specific version of the algorithm <em>IDEBT10</em>:</p>
                   <pre><code>IDEBT10():
   MAX_DEPTH  ← 10
   MIN_RATIO  ← 10⁻¹⁰
   SELF_SHARE ← 0.1
   IDEBT()</code></pre>
                 </div>
-              </section>
-              <section id="trust-based-scoring" rel="schema:hasPart" resource="#trust-based-scoring">
-                <h3 property="schema:name">Trust-based Scoring</h3>
                 <div datatype="rdf:HTML" property="schema:description">
-                  <p>Once IDEBT has terminated and <code>paths</code> is populated, the per-key scores and the trust-state hash are derived from it directly. All trust paths ending at a given public key <code>k</code> are summed into a single ratio in <code>[0,1]</code>; the number of pairwise-disjoint paths is recorded separately as a diagnostic and does not feed into the ratio or quota. The aggregated ratio is mapped to an integer publication quota, clamped between <code>MIN_QUOTA</code> and <code>MAX_QUOTA</code>. A key claimed by exactly one agent is marked <em>approved</em>; one claimed by two or more is marked <em>contested</em>. Finally, the full path set is canonicalised and hashed (SHA-256) into <code>trustStateHash</code>, which downstream services use to mirror a consistent view; because IDEBT is deterministic in <code>setting</code>, two registries with the same setting produce the same hash.</p>
+                  <p>Once IDEBT has terminated and <code>paths</code> is populated, the per-key scores and the trust-state hash can be derived:</p>
                   <pre><code>for each pubkey k:
   P_k       ← { p ∈ paths : pubkey(end(p)) = k }
   ratio(k)  ← Σ { p.ratio : p ∈ P_k }
@@ -280,6 +277,7 @@ IDEBT():
               contested otherwise
 
 trustStateId ← hash(canonicalSerialisation(paths))</code></pre>
+                  <p>All trust paths ending at a given public key <code>k</code> are summed into a single ratio in <code>[0,1]</code>. The aggregated ratio is mapped to an integer publication quota, clamped between <code>MIN_QUOTA</code> and <code>MAX_QUOTA</code>, to provide a fair distribution where every trusted agents gets a minimal quota and nobody gets an excessive one. At this stage also contested keys that are claimed by more than one agent need to be flagged or resolved. At the moment, we simply mark all keys that are declared by exactly one agent <em>approved</em>, and those claimed by two or more we mark <em>contested</em>. But more different advanced methods are possible, such as marking only the agent with the highest ratio as <em>approved</em>, possibly conditional on a defined gap to the one agent with second-highest ratio. Then such contested identities can be resolved socially by issuing further endorsements, in line with what the Knowledge Space whitepaper [<a class="ref" href="#ref-10">10</a>] sketches.  Finally, the full path set is canonicalised and hashed (currently with SHA-256) into <code>trustStateHash</code>, which downstream services can use to mirror a consistent view.</p>
                 </div>
               </section>
             </div>
@@ -331,8 +329,8 @@ trustStateId ← hash(canonicalSerialisation(paths))</code></pre>
               <p><mark class="todo">Draft — sustainability-and-scaling argument; verify wording and the cross-references before submission.</mark> <em>Sustainability and scaling.</em> Three mechanisms together — per-instance (pubkey, type) coverage, IDEBT's per-pubkey publication quota, and the per-Registry capacity preserved under coverage restriction shown in Section <a href="#network-simulation-results">Network simulation: results</a> — give the architecture a sustainability story that does not depend on a single operator's budget. Open Registries serve the long tail of moderate publishers under generous default quotas; institutional or commercial publishers needing higher throughput than open instances will grant operate or commission their own coverage-restricted Registries, paying for the capacity they consume rather than externalising it onto the open ones. IDEBT's per-pubkey quota cap (bounded by Lemma 1's ratio conservation) prevents any single key from monopolising the open instances regardless of who funds it, and coverage selection lets the same Registry codebase serve as both an open community node and a self-funded private node without architectural divergence. The cost of scaling thus falls on the parties that produce the load, while the trust algorithm and open replication keep what they publish as verifiable and queryable as anything else in the network.</p>
             </div>
           </section>
-          <section id="conclusion-and-future-work" rel="schema:hasPart" resource="#conclusion-and-future-work">
-            <h2 property="schema:name">Conclusion and Future Work</h2>
+          <section id="conclusion" rel="schema:hasPart" resource="#conclusion">
+            <h2 property="schema:name">Conclusion</h2>
             <div datatype="rdf:HTML" property="schema:description">
               <p><mark class="todo">Draft — revise.</mark> We have presented a second-generation nanopublication ecosystem that takes the Knowledge Space vision from a design sketch to a running, openly accessible infrastructure. The architecture rests on three cooperating layers — Trusty URIs, federated Nanopub Registries, and Nanopub Query services — and keeps signed content, identity bindings, and trust assertions in a single RDF-native substrate rather than splitting them across separate identity, content, and moderation protocols.</p>
               <p><mark class="todo">Draft — revise.</mark> The main conceptual contribution is <em>IDEBT</em>, a seed-rooted, decay-bounded, deterministic trust algorithm that operates over retractable identity-to-key and endorsement nanopublications. Because IDEBT is deterministic and re-runnable, the resulting trust state is itself a content-addressable artefact: peers and Query services mirror it via the trust-state hash and switch atomically when it changes, so clients never recompute trust themselves. Together with the federated registry layer — which provides verifiable, transparently replicated storage of signed RDF without a global consensus ledger — this yields a combination of primitives that, to our knowledge, no single existing system offers.</p>
