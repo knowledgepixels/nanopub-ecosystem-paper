@@ -78,6 +78,19 @@
             <p><a href="https://w3id.org/knowledge-space/">w3id.org/knowledge-space</a></p>
           </div>
         </section>
+        <section class="slide" id="contributions" inlist="" rel="schema:hasPart" resource="#contributions" typeof="bibo:Slide">
+          <h2 property="schema:name">🎁 Contributions</h2>
+          <div datatype="rdf:HTML" property="schema:description">
+            <p><em>How can a decentralized infrastructure enable open, trust-aware knowledge sharing at scale, without delegating trust judgement to a central operator?</em></p>
+            <ul>
+              <li>A federated architecture for decentralized, scalable nanopublication publishing and querying</li>
+              <li><strong>IDEBT</strong> — a deterministic, bounded trust algorithm with a locally verifiable trust network</li>
+              <li>Reference implementations: <strong>Nanopub Registry</strong> and <strong>Nanopub Query</strong></li>
+              <li>Descriptive analysis of the live deployed network</li>
+              <li>Controlled multi-node deployment study under two coverage configurations</li>
+            </ul>
+          </div>
+        </section>
         <section class="slide" id="nanopublications-recap" inlist="" rel="schema:hasPart" resource="#nanopublications-recap" typeof="bibo:Slide">
           <h2 property="schema:name"><img class="np-icon-lg" src="img/nanopub-icon.png" /> Nanopublications, recap</h2>
           <div datatype="rdf:HTML" property="schema:description">
@@ -126,77 +139,29 @@
             <p>The trust layer is itself made of nanopublications — signed, retractable, content-addressed:</p>
             <ul>
               <li><strong>Setting</strong> — declares the trust root and propagation policy of a Registry</li>
-              <li><strong>Introduction</strong> — binds an agent (ORCID) to a public key</li>
+              <li><strong>Declaration</strong> — binds an agent (ORCID) to a public key</li>
               <li><strong>Endorsement</strong> — one signer <code>approvesOf</code> another nanopublication</li>
               <li><strong>Index</strong> — groups nanopublications (e.g. the seed agents in a setting)</li>
             </ul>
           </div>
         </section>
-        <section class="slide" id="nanopub-skeleton-shared-by-all-types" inlist="" rel="schema:hasPart" resource="#nanopub-skeleton-shared-by-all-types" typeof="bibo:Slide">
-          <h2 property="schema:name">📝 Nanopub skeleton (shared by all types)</h2>
+        <section class="slide" id="trust-layer-assertions" inlist="" rel="schema:hasPart" resource="#trust-layer-assertions" typeof="bibo:Slide">
+          <h2 property="schema:name">📝 Trust-layer assertions (TriG)</h2>
           <div datatype="rdf:HTML" property="schema:description">
-            <pre><code>@prefix this:  &lt;…this nanopub&gt; .
-@prefix sub:   &lt;…this nanopub/&gt; .
-…
+            <pre><code># Setting — declares the trust root and propagation policy
+sub:setting a npx:NanopubSetting ;
+  npx:hasAgents              &lt;…initialAgentsIndex&gt; ;
+  npx:hasTrustRangeAlgorithm npx:IDEBT10 ;
+  npx:hasUpdateStrategy      npx:UpdatesByCreator .
 
-sub:Head { this: a np:Nanopublication ;
-           np:hasAssertion       sub:assertion ;
-           np:hasProvenance      sub:provenance ;
-           np:hasPublicationInfo sub:pubinfo . }
+# Declaration — binds an agent (ORCID) to a public key
+sub:keyDecl npx:declaredBy   orcid:0000-0002-7487-4881 ;
+            npx:hasAlgorithm "RSA" ;
+            npx:hasPublicKey "MIGfMA0GCSqG…wIDAQAB" .
 
-sub:assertion { … }   # filled in per type, see next slides
-
-sub:provenance { sub:assertion prov:wasAttributedTo orcid:0000-0002-1267-0234 . }
-
-sub:pubinfo    { this: dct:created "2025-12-02T12:17:03Z"^^xsd:dateTime .
-                 sub:sig npx:hasPublicKey "MIGf…AB" ;
-                         npx:hasSignature "VFt…EQI=" ;
-                         npx:signedBy     orcid:0000-0002-1267-0234 . }</code></pre>
-          </div>
-        </section>
-        <section class="slide" id="setting-assertion" inlist="" rel="schema:hasPart" resource="#setting-assertion" typeof="bibo:Slide">
-          <h2 property="schema:name">📝 Setting assertion</h2>
-          <div datatype="rdf:HTML" property="schema:description">
-            <p>Declares the trust root and propagation policy of a Registry.</p>
-            <pre class="large"><code>sub:assertion {
-  sub:setting a npx:NanopubSetting ;
-    npx:hasAgents              &lt;…initialAgentsIndex&gt; ;
-    npx:hasBootstrapService    &lt;https://registry.knowledgepixels.com/&gt; ,
-                               &lt;https://registry.nanodash.net/&gt; ,
-                               &lt;https://registry.petapico.org/&gt; ;
-    npx:hasServices            &lt;…servicesIndex&gt; ;
-    npx:hasTrustRangeAlgorithm npx:IDEBT10 ;
-    npx:hasUpdateStrategy      npx:UpdatesByCreator . }</code></pre>
-          </div>
-        </section>
-        <section class="slide" id="introduction-assertion" inlist="" rel="schema:hasPart" resource="#introduction-assertion" typeof="bibo:Slide">
-          <h2 property="schema:name">📝 Introduction assertion</h2>
-          <div datatype="rdf:HTML" property="schema:description">
-            <p>Binds an agent (ORCID) to an RSA public key.</p>
-            <pre class="large"><code>sub:assertion {
-  sub:keyDecl npx:declaredBy   orcid:0000-0002-7487-4881 ;
-              npx:hasAlgorithm "RSA" ;
-              npx:hasPublicKey "MIGfMA0GCSqG…wIDAQAB" . }</code></pre>
-          </div>
-        </section>
-        <section class="slide" id="endorsement-assertion" inlist="" rel="schema:hasPart" resource="#endorsement-assertion" typeof="bibo:Slide">
-          <h2 property="schema:name">📝 Endorsement assertion</h2>
-          <div datatype="rdf:HTML" property="schema:description">
-            <p>One signer approves another nanopublication — typically an introduction — adding a trust edge.</p>
-            <pre class="large"><code>sub:assertion {
-  orcid:0000-0002-1267-0234
-    npx:approvesOf &lt;https://w3id.org/np/RA2rnE4Gi…&gt; . }</code></pre>
-          </div>
-        </section>
-        <section class="slide" id="index-assertion" inlist="" rel="schema:hasPart" resource="#index-assertion" typeof="bibo:Slide">
-          <h2 property="schema:name">📝 Index assertion</h2>
-          <div datatype="rdf:HTML" property="schema:description">
-            <p>Groups other nanopublications — here, the <code>initialAgentsIndex</code> referenced by the setting above.</p>
-            <pre class="large"><code>sub:assertion {
-  sub:initialAgentsIndex a npx:NanopubIndex ;
-    npx:includesElement &lt;https://w3id.org/np/RA2rnE4Gi…&gt; ,
-                        &lt;https://w3id.org/np/RAxKSHJSR…&gt; ,
-                        &lt;https://w3id.org/np/RABm7U1wy…&gt; . }</code></pre>
+# Endorsement — approves another nanopublication (typically a declaration)
+orcid:0000-0002-1267-0234
+  npx:approvesOf &lt;https://w3id.org/np/RA2rnE4Gi…&gt; .</code></pre>
           </div>
         </section>
         <section class="slide" id="idebt-trust-calculation" inlist="" rel="schema:hasPart" resource="#idebt-trust-calculation" typeof="bibo:Slide">
@@ -212,24 +177,16 @@ sub:pubinfo    { this: dct:created "2025-12-02T12:17:03Z"^^xsd:dateTime .
             </ul>
           </div>
         </section>
-        <section class="slide" id="idebt-pseudo-code-initialisation" inlist="" rel="schema:hasPart" resource="#idebt-pseudo-code-initialisation" typeof="bibo:Slide">
-          <h2 property="schema:name">💻 IDEBT pseudo-code — initialisation</h2>
+        <section class="slide" id="idebt-pseudo-code" inlist="" rel="schema:hasPart" resource="#idebt-pseudo-code" typeof="bibo:Slide">
+          <h2 property="schema:name">💻 IDEBT pseudo-code</h2>
           <div datatype="rdf:HTML" property="schema:description">
-            <pre><code>IDEBT():
+            <pre class="small"><code>IDEBT():
   paths        ← { (chain = [$], ratio = 1.0, ¬primary) }
-  declarations ← { peers.fetch(u) :
-                   u ∈ peers.fetch(setting.agentIntroCollection) }
+  declarations ← { peers.fetch(u) : u ∈ peers.fetch(setting.agentDeclCollection) }
   endorsements ← ∅
-  N            ← { ($, (a, k)) :
-                   (a, k) declared by some D ∈ declarations }
-  …</code></pre>
-            <p>Seeds <code>paths</code> with the root, fetches the initial declarations from the agent-intro index referenced by the setting, and builds the first-hop edge set <code>N</code> from the root sentinel <code>$</code> to each declared <code>(a, k)</code>.</p>
-          </div>
-        </section>
-        <section class="slide" id="idebt-pseudo-code-depth-loop" inlist="" rel="schema:hasPart" resource="#idebt-pseudo-code-depth-loop" typeof="bibo:Slide">
-          <h2 property="schema:name">💻 IDEBT pseudo-code — depth loop</h2>
-          <div datatype="rdf:HTML" property="schema:description">
-            <pre><code>  for d = 1 to MAX_DEPTH:
+  N            ← { ($, (a, k)) : (a, k) declared by some D ∈ declarations }
+
+  for d = 1 to MAX_DEPTH:
     expand ← SelectFrontier(d - 1)
     if expand = ∅: break
     for p in expand:
@@ -241,7 +198,18 @@ sub:pubinfo    { this: dct:created "2025-12-02T12:17:03Z"^^xsd:dateTime .
                 ∃ D ∈ declarations referenced by E,
                 D declares (a', k') }
     Expand(expand, N)</code></pre>
-            <p>Each iteration selects the highest-ratio non-primary path per endpoint, fetches its endorsements/declarations from peers, extends <code>N</code>, then expands ratios across the new edges.</p>
+            <p>Seed from the agent-declaration index referenced by the setting; then per depth select the highest-ratio non-primary path per endpoint, fetch its declarations/endorsements from peers, extend <code>N</code>, and expand ratios across the new edges.</p>
+          </div>
+        </section>
+        <section class="slide" id="idebt-properties" inlist="" rel="schema:hasPart" resource="#idebt-properties" typeof="bibo:Slide">
+          <h2 property="schema:name">🧪 IDEBT properties (3 lemmas)</h2>
+          <div datatype="rdf:HTML" property="schema:description">
+            <ul>
+              <li><strong>Lemma 1 — Ratio conservation.</strong> <code>∑<sub>p</sub> p.ratio ≤ 1</code> throughout. Each pubkey has bounded influence regardless of how many endorsements it issues.</li>
+              <li><strong>Lemma 2 — Bounded path set.</strong> At most one primary path per <code>(a, k)</code>; <code>|paths| ≤ 1 + |seed declarations| + |endorsements|</code>. Linear, not combinatorial.</li>
+              <li><strong>Lemma 3 — Determinism.</strong> Same <code>setting</code> + same nanopublications ⇒ same <code>paths</code>, same per-key scores, same trust-state hash. Peers can mirror by hash.</li>
+            </ul>
+            <p>⇒ <strong>Robust</strong> against Sybil cliques and fan-out flooding · <strong>efficient</strong> to compute · <strong>reproducible</strong> as a content-addressable artefact.</p>
           </div>
         </section>
         <section class="slide" id="deployed-configuration-idebt10" inlist="" rel="schema:hasPart" resource="#deployed-configuration-idebt10" typeof="bibo:Slide">
@@ -256,8 +224,8 @@ sub:pubinfo    { this: dct:created "2025-12-02T12:17:03Z"^^xsd:dateTime .
             <p>Trust-state hash = SHA-256 of the canonicalised path set.</p>
           </div>
         </section>
-        <section class="slide" id="live-snapshot-identity-and-content" inlist="" rel="schema:hasPart" resource="#live-snapshot-identity-and-content" typeof="bibo:Slide">
-          <h2 property="schema:name">📊 Live snapshot — identity and content</h2>
+        <section class="slide" id="live-snapshot" inlist="" rel="schema:hasPart" resource="#live-snapshot" typeof="bibo:Slide">
+          <h2 property="schema:name">📊 Live snapshot</h2>
           <div datatype="rdf:HTML" property="schema:description">
             <p><code>registry.knowledgepixels.com</code> · 2026-05-04 · trust-state hash <code>4d07f8db…</code></p>
             <table>
@@ -269,6 +237,10 @@ sub:pubinfo    { this: dct:created "2025-12-02T12:17:03Z"^^xsd:dateTime .
               </thead>
               <tbody>
                 <tr>
+                  <td>Stored nanopublications</td>
+                  <td>79,672</td>
+                </tr>
+                <tr>
                   <td>Distinct signers (agents)</td>
                   <td>616</td>
                 </tr>
@@ -277,39 +249,8 @@ sub:pubinfo    { this: dct:created "2025-12-02T12:17:03Z"^^xsd:dateTime .
                   <td>692 / 4 / 5</td>
                 </tr>
                 <tr>
-                  <td>Accounts per agent (max; modal)</td>
-                  <td>6 (max); 1 (89%)</td>
-                </tr>
-                <tr>
-                  <td>Stored nanopublications</td>
-                  <td>79,672</td>
-                </tr>
-                <tr>
-                  <td>Registry version / trust-state counter</td>
-                  <td>1.9.0 / 25</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </section>
-        <section class="slide" id="live-snapshot-trust-graph" inlist="" rel="schema:hasPart" resource="#live-snapshot-trust-graph" typeof="bibo:Slide">
-          <h2 property="schema:name">🕸️ Live snapshot — trust graph</h2>
-          <div datatype="rdf:HTML" property="schema:description">
-            <table>
-              <thead>
-                <tr>
-                  <th>Quantity</th>
-                  <th>Value</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
                   <td>Trust paths (primary / extended)</td>
                   <td>772 (695 / 77)</td>
-                </tr>
-                <tr>
-                  <td>Distinct endorsement edges</td>
-                  <td>772</td>
                 </tr>
                 <tr>
                   <td>Effective depth range</td>
@@ -321,36 +262,35 @@ sub:pubinfo    { this: dct:created "2025-12-02T12:17:03Z"^^xsd:dateTime .
                 </tr>
                 <tr>
                   <td>Total ratio mass over loaded accounts</td>
-                  <td>0.104 (root self 0.10; ≪ 1.0)</td>
-                </tr>
-                <tr>
-                  <td>Accounts ≥ 10⁻⁴ / ≥ 10⁻³ ratio</td>
-                  <td>19 / 17</td>
-                </tr>
-                <tr>
-                  <td>Distinct quota tiers (accounts at floor)</td>
-                  <td>43 (179 at floor 1000)</td>
+                  <td>0.104 (≪ 1.0 budget)</td>
                 </tr>
               </tbody>
             </table>
           </div>
         </section>
-        <section class="slide figure-only" id="bounded-depth-and-ratio-decay" inlist="" rel="schema:hasPart" resource="#bounded-depth-and-ratio-decay" typeof="bibo:Slide">
-          <h2 property="schema:name">📉 Bounded depth and ratio decay</h2>
+        <section class="slide figure-only" id="trust-graph-snapshot" inlist="" rel="schema:hasPart" resource="#trust-graph-snapshot" typeof="bibo:Slide">
+          <h2 property="schema:name">📊 Trust-graph snapshot</h2>
           <div datatype="rdf:HTML" property="schema:description">
-            <img alt="Per-path depth distribution and ratio mass per depth" class="bigfig" src="../analysis/figures/depth-mass.svg" />
+            <img alt="Per-path depth distribution, aggregated ratio mass per depth, and cumulative growth of declarations and endorsements" class="bigfig" src="../analysis/figures/snapshot.svg" />
           </div>
         </section>
-        <section class="slide figure-only" id="publication-volume-per-signer" inlist="" rel="schema:hasPart" resource="#publication-volume-per-signer" typeof="bibo:Slide">
-          <h2 property="schema:name">📈 Publication volume per signer</h2>
+        <section class="slide figure-only" id="simulation-results" inlist="" rel="schema:hasPart" resource="#simulation-results" typeof="bibo:Slide">
+          <h2 property="schema:name">🚀 Simulation results</h2>
           <div datatype="rdf:HTML" property="schema:description">
-            <img alt="Publication volume per signer-key and per agent" class="bigfig" src="../analysis/figures/publication-volume.svg" />
+            <img alt="Ingestion and query throughput across phases, query mean latency, and per-pod CPU and RAM during ingestion" class="bigfig" src="../analysis/figures/simulation-results.svg" />
+            <p>4 Registries + 4 Query nodes (k8s); corpus grows 100k → 400k nanopubs. Type-sharding: ≈1.5× cluster ingestion lift, ≈6.9k vs 5.2k qps, 2.3 vs 4.0 ms mean.</p>
           </div>
         </section>
-        <section class="slide figure-only" id="network-growth-over-time" inlist="" rel="schema:hasPart" resource="#network-growth-over-time" typeof="bibo:Slide">
-          <h2 property="schema:name">📅 Network growth over time</h2>
+        <section class="slide" id="sustainability-through-coverage" inlist="" rel="schema:hasPart" resource="#sustainability-through-coverage" typeof="bibo:Slide">
+          <h2 property="schema:name">💰 Sustainability through coverage</h2>
           <div datatype="rdf:HTML" property="schema:description">
-            <img alt="Cumulative growth of introductions and endorsements" class="bigfig" src="../analysis/figures/network-growth.svg" />
+            <p>Decentralized capacity without a single funder:</p>
+            <ul>
+              <li>Open Registries serve the long tail of moderate publishers under generous default quotas</li>
+              <li>Institutional / commercial publishers operate their own coverage-restricted Registry + Query, paying for the capacity they need</li>
+              <li>Per-pubkey quota (bounded by Lemma 1) prevents any single key from monopolising open instances</li>
+              <li>Same codebase serves both open and self-funded nodes — coverage is the only knob</li>
+            </ul>
           </div>
         </section>
         <section class="slide" id="how-it-differs" inlist="" rel="schema:hasPart" resource="#how-it-differs" typeof="bibo:Slide">
