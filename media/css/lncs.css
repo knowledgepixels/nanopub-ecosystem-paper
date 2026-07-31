@@ -1191,3 +1191,26 @@ height:auto;
 figure.full-width img {
 width:100%;
 }
+
+@media print {
+/* Editing metadata belongs on screen only, not in the typeset paper. */
+#document-modified {
+display:none;
+}
+
+/* dokieli appends the URL after each link when printing. Those URLs are long
+   single tokens: left alone they drop to a line of their own and the justified
+   line above them gets stretched. scripts/make-pdf.sh supplies data-print-url,
+   a copy of the URL carrying zero-width spaces after its punctuation, so the
+   line breaker can split it at slashes and dashes rather than mid-word.
+   Printing straight from a browser simply keeps dokieli's unbroken URL. */
+#content a[data-print-url]::after {
+content:" (" attr(data-print-url) ")";
+}
+
+/* Author ORCIDs print as the bare identifier rather than the full URL. CSS
+   cannot slice attr(href), so the id is carried in data-orcid. */
+#authors a[data-orcid]::after {
+content:" (" attr(data-orcid) ")";
+}
+}
