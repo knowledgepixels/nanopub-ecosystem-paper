@@ -162,7 +162,7 @@ sub:pubinfo    { this: dct:created "2025-12-02T12:17:03Z"^^xsd:dateTime .
           <section id="idebt" rel="schema:hasPart" resource="#idebt">
             <h2 property="schema:name">IDEBT</h2>
             <div datatype="rdf:HTML" property="schema:description">
-              <p>Here we present an algorithm for robust trust calculation in a decentralized setting, called <em>Iterative Declaration-Endorsement Bounded Trust</em> (IDEBT). Nanopub Registries use this algorithm for their trust network calculations.</p>
+              <p>Here we present an algorithm for robust trust calculation in a decentralized setting, called <em>Iterative Declaration-Endorsement Bounded Trust</em> (IDEBT). This algorithm runs periodically on Nanopub Registries in the background, and materialises the resulting trust state, which is subsequently picked up by the Query instances as well (see Section 3.4).</p>
               <section id="trust-calculation-with-idebt" rel="schema:hasPart" resource="#trust-calculation-with-idebt">
                 <h3 property="schema:name">Trust calculation with IDEBT</h3>
                 <div datatype="rdf:HTML" property="schema:description">
