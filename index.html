@@ -119,20 +119,20 @@ sub:assertion {
 
 # (b) Declaration assertion: binds an agent (e.g. via ORCID) to a public key
 sub:assertion {
-  sub:keyDecl npx:declaredBy   orcid:0000-0002-7487-4881 ;
+  sub:keyDecl npx:declaredBy   orcid:0000-0002-1267-0234 ;
               npx:hasAlgorithm "RSA" ;
-              npx:hasPublicKey "MIGfMA0GCSqG…wIDAQAB" . }
+              npx:hasPublicKey "MIGfMA0GCSqG...wIDAQAB" . }
 
 # (c) Endorsement assertion: approves a declaration nanopublication
 sub:assertion {
   orcid:0000-0002-1267-0234
-    npx:approvesOf &lt;https://w3id.org/np/RA2rnE4Gi…&gt; . }
+    npx:approvesOf &lt;https://w3id.org/np/RA2rnE4Gi...&gt; . }
 
 # Common provenance and publication info graphs (identical across types):
 sub:provenance { sub:assertion prov:wasAttributedTo orcid:0000-0002-1267-0234 . }
 sub:pubinfo    { this: dct:created "2025-12-02T12:17:03Z"^^xsd:dateTime .
-                 sub:sig npx:hasPublicKey "MIGf…AB" ;
-                         npx:hasSignature "VFt…EQI=" ;
+                 sub:sig npx:hasPublicKey "MIGf...AB" ;
+                         npx:hasSignature "VFt...EQI=" ;
                          npx:signedBy     orcid:0000-0002-1267-0234 . }</code></pre>
                 </div>
               </section>
@@ -250,7 +250,7 @@ trustStateId ← hash(canonicalSerialisation(paths))</code></pre>
               <section id="descriptive-analysis-of-network-snapshot" rel="schema:hasPart" resource="#descriptive-analysis-of-network-snapshot">
                 <h3 property="schema:name">Descriptive analysis of network snapshot</h3>
                 <div datatype="rdf:HTML" property="schema:description">
-                  <p>We first report here from a descriptive analysis of a snapshot of the deployed trust network as observed at the public Registry instance <code>registry.knowledgepixels.com</code> on 2026-05-04, with trust-state hash <code>4d07f8db…</code>, via its public API. At the time of the snapshot, the registry held 79,672 stored nanopublications signed by 616 distinct agents covering 692 loaded agent-key accounts.</p>
+                  <p>We first report here from a descriptive analysis of a snapshot of the deployed trust network as observed at the public Registry instance <code>registry.knowledgepixels.com</code> on 2026-05-04, with trust-state hash <code>4d07f8db...</code>, via its public API. At the time of the snapshot, the registry held 79,672 stored nanopublications signed by 616 distinct agents covering 692 loaded agent-key accounts.</p>
                   <p>Figure 2 gives three views of the deployed trust graph. The ratio gate alone keeps every path within five hops of the seed, without ever invoking the <code>MAX_DEPTH</code> parameter: the 14 first-hop paths line up cleanly with the seed agent-keys declared in the setting. Panel (b) shows ratio mass decaying geometrically with depth as Lemma 1 predicts, leaving more than three quarters of the 1.0 conservation budget unused. The path set stays linear in the size of the trust graph rather than combinatorial: the 772 paths split into 695 primary chains and 77 deduplicated extensions, and 94.8% of reached accounts sit at the end of exactly one path.</p>
                   <figure class="full-width" id="fig-snapshot">
                     <p><img alt="Per-path depth distribution, aggregated ratio mass per depth, and cumulative growth of declarations and endorsements" src="analysis/figures/snapshot.svg" /></p>
