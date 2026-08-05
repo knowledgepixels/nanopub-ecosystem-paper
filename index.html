@@ -197,7 +197,7 @@ IDEBT():
     if p*.ratio ≥ MIN_RATIO:
       expand ← expand ∪ { p* }
   return expand</code></pre>
-                  <p>The <code>argmax</code> above may have ties on <code>p.ratio</code> alone, which can be resolved on a secondary key <code>sorthash = hash(setting ‖ pathId)</code> with <code>pathId</code> a function of <code>chain(p)</code>, to maximize <code>(p.ratio, sorthash)</code> instead of just <code>p.ratio</code>. Expansion then splits the parent's ratio: a fraction <code>SELF_SHARE</code> stays on the (now-primary) parent, and the rest is distributed across endorsed children.</p>
+                  <p>The <code>argmax</code> above may have ties on <code>p.ratio</code> alone, which can be resolved on a secondary key <code>sorthash = hash(setting ‖ pathId)</code> with <code>pathId</code> a function of <code>chain(p)</code>, to maximize <code>p.ratio</code> and, among ties, to minimize <code>sorthash</code>. Expansion then splits the parent's ratio: a fraction <code>SELF_SHARE</code> stays on the (now-primary) parent, and the rest is distributed across endorsed children.</p>
                   <pre><code>Expand(expand, N):
   for p in expand:
     endorsed ← { (a, k) : (end(p), (a, k)) ∈ N }
