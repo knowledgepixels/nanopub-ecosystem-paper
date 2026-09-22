@@ -46,7 +46,7 @@ body > footer nav { display:none; }
 
 a, abbr {
 text-decoration:none;
-color:#000;
+color:var(--do-color-fg, #000);
 }
 audio { display:none; }
 iframe { display:none !important; }
@@ -752,7 +752,7 @@ text-align:left;
 }
 
 figure.listing pre {
-border:1px solid #000;
+border:1px solid var(--do-color-fg, #000);
 padding:0.5em;
 counter-reset:precode;
 margin-top:0;

@@ -119,7 +119,7 @@ margin-bottom:1em;
 
 a {
 text-decoration:none;
-color:#000;
+color:var(--do-color-fg, #000);
 }
 abbr { border-bottom:none; }
 audio { display:none; }
@@ -201,7 +201,7 @@ word-break:break-all;
 
 
 body {
-color:#000000;
+color:var(--do-color-fg, #000);
 font-family:"CMUSerif-Roman", "GNU Unifont", "FreeSerif", "Segoe UI Symbol", serif;
 /*font-size:1.689vw;*/
 font-size:125%;
@@ -331,7 +331,7 @@ margin-bottom:0;
 aside.note {
 position:relative;
 margin:1em 0;
-border-top:1px solid #000;
+border-top:1px solid var(--do-color-fg, #000);
 padding-top:0.25em;
 font-size:0.923em;
 }
@@ -339,7 +339,7 @@ font-size:0.923em;
 aside.note:after {
 content:"";
 width:50%;
-background-color:#fff;
+background-color:var(--do-color-bg, #fff);
 position:absolute;
 top:-1px;
 right:0;
@@ -480,7 +480,7 @@ overflow:auto;
 }
 
 figure.listing pre {
-border:1px solid #000;
+border:1px solid var(--do-color-fg, #000);
 padding:0.5em;
 counter-reset:precode;
 margin-top:0;
@@ -958,14 +958,14 @@ margin-top:2em;
 caption {
 text-align:left;
 font-size:0.923em;
-border-bottom:2pt solid #000;
+border-bottom:2pt solid var(--do-color-fg, #000);
 padding:0 0.25em 0.25em;
 }
 thead {
-border-bottom:1pt solid #000;
+border-bottom:1pt solid var(--do-color-fg, #000);
 }
 tbody {
-border-bottom:2pt solid #000;
+border-bottom:2pt solid var(--do-color-fg, #000);
 }
 th, td {
 padding:0.25em;
