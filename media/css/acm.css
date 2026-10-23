@@ -1030,3 +1030,17 @@ body {
 font-size:100%;
 }
 }
+
+/* dokieli paints its themed background only on documents that link its
+   basic.css, and this one links acm.css instead: the text picked up
+   --do-color-fg while the canvas stayed white, so dark mode rendered light
+   grey on white. Paint the canvas here, and let the UA theme scrollbars and
+   form controls to match. Screen only, so printing stays black on white. */
+@media screen {
+:root {
+color-scheme:light dark;
+background-color:var(--do-color-bg, #fff);
+}
+:root[data-theme="light"] { color-scheme:light; }
+:root[data-theme="dark"] { color-scheme:dark; }
+}
